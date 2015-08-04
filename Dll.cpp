@@ -1,12 +1,31 @@
 #include <iostream>
+#include <codecvt>
 #include <windows.h>
 #include <winreg.h>
 #include <msctf.h>
 #include "Squirrel.h"
+#include "SquirrelFactory.h"
 #include "util.h"
 using namespace std;
 
-extern "C" __declspec(dllexport) HRESULT DllRegisterServer()
+STDAPI DllGetClassObject(const CLSID &clsid, const IID &iid, void **ret)
+{
+	if (clsid==guid)
+	{
+		SquirrelFactory *factory = new SquirrelFactory();
+		if (factory==NULL)
+			return E_OUTOFMEMORY;
+		return factory->QueryInterface(iid, ret);
+	}
+	return CLASS_E_CLASSNOTAVAILABLE;
+}
+
+STDAPI DllCanUnloadNow()
+{
+	return S_OK;
+}
+
+HRESULT DllRegisterServer()
 {
 	lout << "Register server" << endl;
 	HRESULT hr;
@@ -65,7 +84,10 @@ extern "C" __declspec(dllexport) HRESULT DllRegisterServer()
 		return E_FAIL;
 	}
 	lout << "Add language profile" << endl;
-	hr = profile->AddLanguageProfile(guid, 1028, guid, L"Squirrel", -1, NULL, 0, 0);
+	string path = getSelfPath();
+	wstring_convert<codecvt_utf8_utf16<wchar_t>> converter;
+	wstring wpath = converter.from_bytes(path);
+	hr = profile->AddLanguageProfile(guid, 1028, guid, L"Squirrel", -1, wpath.c_str(), -1, 0);
 	if (hr!=S_OK)
 	{
 		lout << "Fail" << endl;
@@ -74,13 +96,32 @@ extern "C" __declspec(dllexport) HRESULT DllRegisterServer()
 		return E_FAIL;
 	}
 	profile->Release();
+	lout << "Create category manager" << endl;
+	ITfCategoryMgr *categoryMgr;
+	CoCreateInstance(CLSID_TF_CategoryMgr, NULL, CLSCTX_INPROC_SERVER, IID_ITfCategoryMgr, (void **) &categoryMgr);
+	if (hr!=S_OK)
+	{
+		lout << "Fail" << endl;
+		CoUninitialize();
+		return E_FAIL;
+	}
+	lout << "Register category keyboard" << endl;
+	hr = categoryMgr->RegisterCategory(guid, GUID_TFCAT_TIP_KEYBOARD, guid);
+	if (hr!=S_OK)
+	{
+		lout << "Fail" << endl;
+		CoUninitialize();
+		categoryMgr->Release();
+		return E_FAIL;
+	}
+	categoryMgr->Release();
 	CoUninitialize();
 	
 	lout << "Register server success" << endl;
 	return S_OK;
 }
 
-extern "C" __declspec(dllexport) HRESULT DllUnregisterServer()
+HRESULT DllUnregisterServer()
 {
 	lout << "Unregister server" << endl;
 	HRESULT hr;
