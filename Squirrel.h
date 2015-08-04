@@ -1,5 +1,11 @@
 #pragma once
 
+#include <windows.h>
+
+// {7841FDFF-FBE7-4D1F-9E57-F56CAF7F05A5}
+static const GUID guid = 
+{ 0x7841fdff, 0xfbe7, 0x4d1f, { 0x9e, 0x57, 0xf5, 0x6c, 0xaf, 0x7f, 0x5, 0xa5 } };
+
 class Squirrel
 {
 	
