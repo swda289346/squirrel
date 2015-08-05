@@ -6,6 +6,8 @@
 #include <string>
 using namespace std;
 
+EXTERN_C IMAGE_DOS_HEADER __ImageBase;
+
 #ifdef _DEBUG
 extern ofstream lout;
 #else

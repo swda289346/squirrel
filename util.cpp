@@ -6,13 +6,12 @@
 #include "util.h"
 using namespace std;
 
-EXTERN_C IMAGE_DOS_HEADER __ImageBase;
-
 // TODO
 int lprintf(const char *fmt, ...)
 {
 #ifdef _DEBUG
 	static FILE *fout = fopen("c:\\squirrel.log", "a");
+	setbuf(fout, NULL);
 	va_list args;
 	va_start(args, fmt);
 	int ret = vfprintf(fout, fmt, args);

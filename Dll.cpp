@@ -114,6 +114,24 @@ HRESULT DllRegisterServer()
 		categoryMgr->Release();
 		return E_FAIL;
 	}
+	lout << "Register app support" << endl;
+	hr = categoryMgr->RegisterCategory(guid, GUID_TFCAT_TIPCAP_IMMERSIVESUPPORT, guid);
+	if (hr!=S_OK)
+	{
+		lout << "Fail" << endl;
+		CoUninitialize();
+		categoryMgr->Release();
+		return E_FAIL;
+	}
+	lout << "Register system tray suuport" << endl;
+	hr = categoryMgr->RegisterCategory(guid, GUID_TFCAT_TIPCAP_SYSTRAYSUPPORT, guid);
+	if (hr!=S_OK)
+	{
+		lout << "Fail" << endl;
+		CoUninitialize();
+		categoryMgr->Release();
+		return E_FAIL;
+	}
 	categoryMgr->Release();
 	CoUninitialize();
 	
