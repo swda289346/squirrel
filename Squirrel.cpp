@@ -1,5 +1,7 @@
+#include <map>
 #include "Squirrel.h"
 #include "util.h"
+using namespace std;
 
 static const GUID GUID_LBI_INPUTMODE = 
 { 0x2C77A81E, 0x41CC, 0x4178, { 0xA3, 0xA7, 0x5F, 0x8A, 0x98, 0x75, 0x68, 0xE6}};
@@ -7,6 +9,19 @@ static const GUID GUID_LBI_INPUTMODE =
 Squirrel::Squirrel() : count(0), enabled(false), langBarItemInfo{guid, GUID_LBI_INPUTMODE, TF_LBI_STYLE_BTN_BUTTON|TF_LBI_STYLE_SHOWNINTRAY, 0, L"Squirrel"}
 {
 	
+}
+
+void Squirrel::putChar(ITfContext *pic, wchar_t c)
+{
+	lout << "putChar " << (unsigned int) c << endl;
+	HRESULT hr, hrSession;
+	this->pic = pic;
+	pic->AddRef();
+	textToSet = c;
+	hr = pic->RequestEditSession(tid, this, TF_ES_SYNC|TF_ES_READWRITE, &hrSession);
+	this->pic->Release();
+	this->pic = NULL;
+	lout << "putChar done" << endl;
 }
 
 HRESULT __stdcall Squirrel::QueryInterface(REFIID iid, void **ret)
@@ -39,6 +54,12 @@ HRESULT __stdcall Squirrel::QueryInterface(REFIID iid, void **ret)
 	{
 		this->AddRef();
 		*ret = (ITfKeyEventSink *) this;
+		return S_OK;
+	}
+	if (iid==IID_ITfEditSession)
+	{
+		this->AddRef();
+		*ret = (ITfEditSession *) this;
 		return S_OK;
 	}
 	return E_NOINTERFACE;
@@ -195,13 +216,59 @@ HRESULT __stdcall Squirrel::OnMenuSelect(UINT wID)
 	return E_FAIL;
 }
 
+static const map<char, wchar_t> phoneticTable =
+{
+	{'1', L'£t'},
+	{'Q', L'£u'},
+	{'A', L'£v'},
+	{'Z', L'£w'},
+	{'2', L'£x'},
+	{'W', L'£y'},
+	{'S', L'£z'},
+	{'X', L'£{'},
+	{'3', L'£¾'},
+	{'E', L'£|'},
+	{'D', L'£}'},
+	{'C', L'£~'},
+	{'4', L'£¿'},
+	{'R', L'£¡'},
+	{'F', L'£¢'},
+	{'V', L'££'},
+	{'5', L'£¤'},
+	{'T', L'£¥'},
+	{'G', L'£¦'},
+	{'B', L'£§'},
+	{'6', L'£½'},
+	{'Y', L'£¨'},
+	{'H', L'£©'},
+	{'N', L'£ª'},
+	{'7', L'£»'},
+	{'U', L'£¸'},
+	{'J', L'£¹'},
+	{'M', L'£º'},
+	{'8', L'£«'},
+	{'I', L'£¬'},
+	{'K', L'£­'},
+	{188, L'£®'},
+	{'9', L'£¯'},
+	{'O', L'£°'},
+	{'L', L'£±'},
+	{190, L'£²'},
+	{'0', L'£³'},
+	{'P', L'£´'},
+	{186, L'£µ'},
+	{191, L'£¶'},
+	{189, L'£·'},
+};
+
 STDMETHODIMP Squirrel::OnKeyDown(ITfContext *pic, WPARAM wParam, LPARAM lParam, BOOL *pfEaten)
 {
 	lout << "OnKeyDown" << endl;
-	if (enabled)
+	if (enabled && phoneticTable.count(wParam))
 	{
 		*pfEaten = TRUE;
-		lout << "Try to eat key down" << endl;
+		lout << "Try to eat key down " << wParam << " " << lParam << endl;
+		putChar(pic, phoneticTable.at(wParam));
 	}
 	else
 		*pfEaten = FALSE;
@@ -235,13 +302,16 @@ STDMETHODIMP Squirrel::OnTestKeyDown(ITfContext *pic, WPARAM wParam, LPARAM lPar
 		enabled = !enabled;
 		langBarItemSink->OnUpdate(TF_LBI_BTNALL);
 	}
-	if (enabled)
+	if (enabled && phoneticTable.count(wParam))
 	{
 		*pfEaten = TRUE;
-		lout << "Try to eat key down " << wParam << " " << lParam << endl;
+		lout << "Try to eat test key down " << wParam << " " << lParam << endl;
 	}
 	else
+	{
 		*pfEaten = FALSE;
+		lout << "Try not to eat test key down " << wParam << " " << lParam << endl;
+	}
 	return S_OK;
 }
 
@@ -249,5 +319,17 @@ STDMETHODIMP Squirrel::OnTestKeyUp(ITfContext *pic, WPARAM wParam, LPARAM lParam
 {
 	lout << "OnTestKeyUp" << endl;
 	*pfEaten = FALSE;
+	return S_OK;
+}
+
+HRESULT __stdcall Squirrel::DoEditSession(TfEditCookie ec)
+{
+	lout << "DoEditSession" << endl;
+	HRESULT hr;
+	ITfRange *range = NULL;
+	hr = pic->GetEnd(ec, &range);
+	lprintf("GetEnd %08x\n", hr);
+	range->SetText(ec, 0, &textToSet, 1);
+	lout << "DoEditSession done" << endl;
 	return S_OK;
 }
