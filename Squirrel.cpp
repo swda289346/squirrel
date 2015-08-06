@@ -1,12 +1,15 @@
 #include <map>
+#include <set>
+#include <string>
 #include "Squirrel.h"
 #include "util.h"
+#include "PhoneticCombination.h"
 using namespace std;
 
 static const GUID GUID_LBI_INPUTMODE = 
 { 0x2C77A81E, 0x41CC, 0x4178, { 0xA3, 0xA7, 0x5F, 0x8A, 0x98, 0x75, 0x68, 0xE6}};
 
-Squirrel::Squirrel() : count(0), enabled(false), langBarItemInfo{guid, GUID_LBI_INPUTMODE, TF_LBI_STYLE_BTN_BUTTON|TF_LBI_STYLE_SHOWNINTRAY, 0, L"Squirrel"}
+Squirrel::Squirrel() : count(0), enabled(false), langBarItemInfo{guid, GUID_LBI_INPUTMODE, TF_LBI_STYLE_BTN_BUTTON|TF_LBI_STYLE_SHOWNINTRAY, 0, L"Squirrel"}, composition(NULL)
 {
 	
 }
@@ -259,6 +262,7 @@ static const map<char, wchar_t> phoneticTable =
 	{186, L'£µ'},
 	{191, L'£¶'},
 	{189, L'£·'},
+	{' ', L' '},
 };
 
 STDMETHODIMP Squirrel::OnKeyDown(ITfContext *pic, WPARAM wParam, LPARAM lParam, BOOL *pfEaten)
@@ -322,14 +326,57 @@ STDMETHODIMP Squirrel::OnTestKeyUp(ITfContext *pic, WPARAM wParam, LPARAM lParam
 	return S_OK;
 }
 
+static const set<wchar_t> phoneticCompleteSet =
+{
+	L' ', L'£½', L'£¾', L'£¿', L'£»'
+};
+
 HRESULT __stdcall Squirrel::DoEditSession(TfEditCookie ec)
 {
 	lout << "DoEditSession" << endl;
 	HRESULT hr;
+	if (composition==NULL)
+	{
+		ITfContextComposition *contextComposition = NULL;
+		hr = pic->QueryInterface(IID_ITfContextComposition, (void **) &contextComposition);
+		lprintf("QueryInterface ITfContextComposition %08x\n", hr);
+		ITfInsertAtSelection *insertAtSelection = NULL;
+		hr = pic->QueryInterface(IID_ITfInsertAtSelection, (void **) &insertAtSelection);
+		lprintf("QueryInterface InsertAtSelection %08x\n", hr);
+		ITfRange *range = NULL;
+		hr = insertAtSelection->InsertTextAtSelection(ec, TF_IAS_QUERYONLY, NULL, 0, &range);
+		lprintf("InsertTextAtSelection %08x %08x\n", hr, range);
+		insertAtSelection->Release();
+		hr = contextComposition->StartComposition(ec, range, this, &composition);
+		lprintf("StartComposition %08x\n", hr);
+		range->Release();
+		contextComposition->Release();
+	}
 	ITfRange *range = NULL;
-	hr = pic->GetEnd(ec, &range);
-	lprintf("GetEnd %08x\n", hr);
-	range->SetText(ec, 0, &textToSet, 1);
+	hr = composition->GetRange(&range);
+	lprintf("GetRange %08x\n", hr);
+	wchar_t text[1024];
+	ULONG len;
+	range->GetText(ec, 0, text, 1024, &len);
+	text[len] = 0;
+	wstring textString(text);
+	PhoneticCombination combination(textString);
+	combination.setChar(textToSet);
+	textString = combination.asString();
+	range->SetText(ec, 0, textString.c_str(), textString.size());
+	if (phoneticCompleteSet.count(textToSet))
+	{
+		composition->EndComposition(ec);
+		composition->Release();
+		composition = NULL;
+	}
 	lout << "DoEditSession done" << endl;
+	return S_OK;
+}
+
+HRESULT __stdcall Squirrel::OnCompositionTerminated(TfEditCookie ecWrite, ITfComposition *pComposition)
+{
+	composition->Release();
+	composition = NULL;
 	return S_OK;
 }

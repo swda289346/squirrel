@@ -7,7 +7,7 @@
 static const GUID guid = 
 { 0x7841fdff, 0xfbe7, 0x4d1f, { 0x9e, 0x57, 0xf5, 0x6c, 0xaf, 0x7f, 0x5, 0xa5 } };
 
-class Squirrel : IUnknown, ITfTextInputProcessor, ITfSource, ITfLangBarItemButton, ITfKeyEventSink, ITfEditSession
+class Squirrel : IUnknown, ITfTextInputProcessor, ITfSource, ITfLangBarItemButton, ITfKeyEventSink, ITfEditSession, ITfCompositionSink
 {
 	public:
 		int count;
@@ -18,6 +18,7 @@ class Squirrel : IUnknown, ITfTextInputProcessor, ITfSource, ITfLangBarItemButto
 		ITfLangBarItemSink *langBarItemSink;
 		ITfContext *pic;
 		wchar_t textToSet;
+		ITfComposition *composition;
 		
 		Squirrel();
 		void putChar(ITfContext *pic, wchar_t c);
@@ -51,4 +52,6 @@ class Squirrel : IUnknown, ITfTextInputProcessor, ITfSource, ITfLangBarItemButto
 		STDMETHODIMP OnTestKeyUp(ITfContext *pic, WPARAM wParam, LPARAM lParam, BOOL *pfEaten);
 		
 		HRESULT __stdcall DoEditSession(TfEditCookie ec);
+		
+		HRESULT __stdcall OnCompositionTerminated(TfEditCookie ecWrite, ITfComposition *pComposition);
 };

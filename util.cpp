@@ -2,6 +2,7 @@
 #include <fstream>
 #include <cstdarg>
 #include <string>
+#include <codecvt>
 #include <windows.h>
 #include "util.h"
 using namespace std;
@@ -33,4 +34,10 @@ string getSelfPath()
 	TCHAR path[_MAX_PATH];
 	GetModuleFileName((HINSTANCE) &__ImageBase, path, _MAX_PATH);
 	return string(path);
+}
+
+string toString(wstring str)
+{
+	wstring_convert<codecvt_utf8_utf16<wchar_t>> converter;
+	return converter.to_bytes(str);
 }

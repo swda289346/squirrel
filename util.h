@@ -4,6 +4,7 @@
 #include <fstream>
 #include <cstdarg>
 #include <string>
+#include <windows.h>
 using namespace std;
 
 EXTERN_C IMAGE_DOS_HEADER __ImageBase;
@@ -16,3 +17,4 @@ extern ostream lout;
 
 int lprintf(const char *fmt, ...);
 string getSelfPath();
+string toString(wstring str);
