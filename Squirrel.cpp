@@ -1,3 +1,5 @@
+#include <fstream>
+#include <sstream>
 #include <map>
 #include <set>
 #include <string>
@@ -13,7 +15,19 @@ static const GUID GUID_LBI_INPUTMODE =
 
 Squirrel::Squirrel() : count(0), enabled(false), candidates(), langBarItemInfo{guid, GUID_LBI_INPUTMODE, TF_LBI_STYLE_BTN_BUTTON|TF_LBI_STYLE_SHOWNINTRAY, 0, L"Squirrel"}, composition(NULL), candidateWindow(NULL)
 {
-	
+	ifstream fin("c:\\windows\\system32\\code.txt");
+	ostringstream oss;
+	oss << fin.rdbuf();
+	string s = oss.str();
+	wstring ws = fromString(s);
+	wistringstream iss(ws);
+	wstring code, words;
+	while (iss >> code >> words)
+	{
+//		lout << toString(code) << " " << toString(words);
+		for (wchar_t c : words)
+			codeTable[code].emplace_back(1, c);
+	}
 }
 
 void Squirrel::putChar(ITfContext *pic, wchar_t c)
@@ -410,7 +424,10 @@ HRESULT __stdcall Squirrel::DoEditSession(TfEditCookie ec)
 		HWND parent, child;
 		hr = contextView->GetWnd(&parent);
 		lprintf("GetWnd %08x %08x\n", hr, parent);
-		candidates = vector<wstring>(15, textString);
+		if (codeTable.count(textString))
+			candidates = codeTable[textString];
+		else
+			candidates = vector<wstring>(1, textString);
 		page = 0;
 		candidateWindow = new CandidateWindow((HINSTANCE) &__ImageBase, parent, candidates);
 		SetFocus(parent);

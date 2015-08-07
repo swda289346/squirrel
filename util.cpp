@@ -41,3 +41,9 @@ string toString(wstring str)
 	wstring_convert<codecvt_utf8_utf16<wchar_t>> converter;
 	return converter.to_bytes(str);
 }
+
+wstring fromString(string str)
+{
+	wstring_convert<codecvt_utf8_utf16<wchar_t>> converter;
+	return converter.from_bytes(str);
+}

@@ -18,3 +18,4 @@ extern ostream lout;
 int lprintf(const char *fmt, ...);
 string getSelfPath();
 string toString(wstring str);
+wstring fromString(string str);

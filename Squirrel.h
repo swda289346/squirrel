@@ -1,6 +1,8 @@
 #pragma once
 
+#include <map>
 #include <vector>
+#include <string>
 #include <windows.h>
 #include <msctf.h>
 #include "CandidateWindow.h"
@@ -25,6 +27,7 @@ class Squirrel : IUnknown, ITfTextInputProcessor, ITfSource, ITfLangBarItemButto
 		wchar_t textToSet;
 		ITfComposition *composition;
 		CandidateWindow *candidateWindow;
+		map<wstring, vector<wstring>> codeTable;
 		
 		Squirrel();
 		void putChar(ITfContext *pic, wchar_t c);
