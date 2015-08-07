@@ -62,6 +62,14 @@ HRESULT DllRegisterServer()
 		lout << "Fail" << endl;
 		return E_FAIL;
 	}
+	value = "Apartment";
+	lout << "Write key \\InprocServer32\\ThreadingModel" << endl;
+	hr = RegSetValueExA(key, "ThreadingModel", 0, REG_SZ, (const BYTE *) value.c_str(), value.size());
+	if (hr!=ERROR_SUCCESS)
+	{
+		lout << "Fail" << endl;
+		return E_FAIL;
+	}
 	
 	// Register TS
 	ITfInputProcessorProfiles *profile;
