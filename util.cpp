@@ -33,7 +33,7 @@ string getSelfPath()
 {
 	TCHAR path[_MAX_PATH];
 	GetModuleFileName((HINSTANCE) &__ImageBase, path, _MAX_PATH);
-	return string(path);
+	return toString(wstring(path));
 }
 
 string toString(wstring str)

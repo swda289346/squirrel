@@ -1,15 +1,17 @@
 #include <map>
 #include <set>
 #include <string>
+#include <windows.h>
 #include "Squirrel.h"
 #include "util.h"
 #include "PhoneticCombination.h"
+#include "CandidateWindow.h"
 using namespace std;
 
 static const GUID GUID_LBI_INPUTMODE = 
 { 0x2C77A81E, 0x41CC, 0x4178, { 0xA3, 0xA7, 0x5F, 0x8A, 0x98, 0x75, 0x68, 0xE6}};
 
-Squirrel::Squirrel() : count(0), enabled(false), langBarItemInfo{guid, GUID_LBI_INPUTMODE, TF_LBI_STYLE_BTN_BUTTON|TF_LBI_STYLE_SHOWNINTRAY, 0, L"Squirrel"}, composition(NULL)
+Squirrel::Squirrel() : count(0), enabled(false), candidates(), langBarItemInfo{guid, GUID_LBI_INPUTMODE, TF_LBI_STYLE_BTN_BUTTON|TF_LBI_STYLE_SHOWNINTRAY, 0, L"Squirrel"}, composition(NULL), candidateWindow(NULL)
 {
 	
 }
@@ -183,7 +185,7 @@ HRESULT __stdcall Squirrel::GetIcon(HICON *phIcon)
 {
 	lout << "GetIcon" << endl;
 	if (enabled)
-		*phIcon = LoadIcon((HINSTANCE) &__ImageBase, "ICON");
+		*phIcon = LoadIcon((HINSTANCE) &__ImageBase, L"ICON");
 	else
 		*phIcon = LoadIcon(NULL, IDI_QUESTION);
 	return S_OK;
@@ -352,6 +354,42 @@ HRESULT __stdcall Squirrel::DoEditSession(TfEditCookie ec)
 		range->Release();
 		contextComposition->Release();
 	}
+	if (candidates.size())
+	{
+		if (textToSet==' ')
+		{
+			page = page+1;
+			if (candidates.size()<=page*9)
+				page = 0;
+			candidateWindow->nextPage();
+			return S_OK;
+		}
+		static const map<wchar_t, int> selectTable =
+		{
+			{L'£t', 0},
+			{L'£x', 1},
+			{L'£¾', 2},
+			{L'£¿', 3},
+			{L'£¤', 4},
+			{L'£½', 5},
+			{L'£»', 6},
+			{L'£«', 7},
+			{L'£¯', 8},
+		};
+		int pos = page*9+selectTable.at(textToSet);
+		wstring textString = pos<candidates.size()?candidates[pos]:L"";
+		ITfRange *range = NULL;
+		hr = composition->GetRange(&range);
+		range->SetText(ec, 0, textString.c_str(), textString.size());
+		range->Release();
+		delete candidateWindow;
+		candidateWindow = NULL;
+		candidates.clear();
+		composition->EndComposition(ec);
+		composition->Release();
+		composition = NULL;
+		return S_OK;
+	}
 	ITfRange *range = NULL;
 	hr = composition->GetRange(&range);
 	lprintf("GetRange %08x\n", hr);
@@ -366,9 +404,16 @@ HRESULT __stdcall Squirrel::DoEditSession(TfEditCookie ec)
 	range->SetText(ec, 0, textString.c_str(), textString.size());
 	if (phoneticCompleteSet.count(textToSet))
 	{
-		composition->EndComposition(ec);
-		composition->Release();
-		composition = NULL;
+		ITfContextView *contextView = NULL;
+		hr = pic->GetActiveView(&contextView);
+		lprintf("GetActiveView %08x %08x\n", hr, contextView);
+		HWND parent, child;
+		hr = contextView->GetWnd(&parent);
+		lprintf("GetWnd %08x %08x\n", hr, parent);
+		candidates = vector<wstring>(15, textString);
+		page = 0;
+		candidateWindow = new CandidateWindow((HINSTANCE) &__ImageBase, parent, candidates);
+		SetFocus(parent);
 	}
 	lout << "DoEditSession done" << endl;
 	return S_OK;

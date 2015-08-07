@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.3.0)
 project(Squirrel)
-add_library(Squirrel SHARED Squirrel.cpp SquirrelFactory.cpp Dll.cpp Dll.def Dll.rc util.cpp PhoneticCombination.cpp)
+add_library(Squirrel SHARED Squirrel.cpp SquirrelFactory.cpp Dll.cpp Dll.def Dll.rc util.cpp PhoneticCombination.cpp CandidateWindow.cpp)
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
+add_definitions(/D_UNICODE=1 /DUNICODE=1)

@@ -1,7 +1,10 @@
 #pragma once
 
+#include <vector>
 #include <windows.h>
 #include <msctf.h>
+#include "CandidateWindow.h"
+using namespace std;
 
 // {7841FDFF-FBE7-4D1F-9E57-F56CAF7F05A5}
 static const GUID guid = 
@@ -12,6 +15,8 @@ class Squirrel : IUnknown, ITfTextInputProcessor, ITfSource, ITfLangBarItemButto
 	public:
 		int count;
 		bool enabled;
+		int page;
+		vector<wstring> candidates;
 		ITfThreadMgr *ptim;
 		TfClientId tid;
 		TF_LANGBARITEMINFO langBarItemInfo;
@@ -19,6 +24,7 @@ class Squirrel : IUnknown, ITfTextInputProcessor, ITfSource, ITfLangBarItemButto
 		ITfContext *pic;
 		wchar_t textToSet;
 		ITfComposition *composition;
+		CandidateWindow *candidateWindow;
 		
 		Squirrel();
 		void putChar(ITfContext *pic, wchar_t c);

@@ -33,7 +33,7 @@ HRESULT DllRegisterServer()
 	// Register COM
 	HKEY key;
 	lout << "Create key \\" << endl;
-	hr = RegCreateKeyEx(HKEY_CLASSES_ROOT, "CLSID" "\\{7841FDFF-FBE7-4D1F-9E57-F56CAF7F05A5}", 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &key, NULL);
+	hr = RegCreateKeyEx(HKEY_CLASSES_ROOT, L"CLSID" L"\\{7841FDFF-FBE7-4D1F-9E57-F56CAF7F05A5}", 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &key, NULL);
 	if (hr!=ERROR_SUCCESS)
 	{
 		lout << "Fail" << endl;
@@ -48,7 +48,7 @@ HRESULT DllRegisterServer()
 		return E_FAIL;
 	}
 	lout << "Create key \\InprocServer32" << endl;
-	hr = RegCreateKeyEx(key, "InprocServer32", 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &key, NULL);
+	hr = RegCreateKeyEx(key, L"InprocServer32", 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &key, NULL);
 	if (hr!=ERROR_SUCCESS)
 	{
 		lout << "Fail" << endl;
@@ -146,7 +146,7 @@ HRESULT DllUnregisterServer()
 	
 	// Unregister COM
 	lout << "Delete key \\" << endl;
-	hr = RegDeleteTree(HKEY_CLASSES_ROOT, "CLSID" "\\{7841FDFF-FBE7-4D1F-9E57-F56CAF7F05A5}");
+	hr = RegDeleteTree(HKEY_CLASSES_ROOT, L"CLSID" L"\\{7841FDFF-FBE7-4D1F-9E57-F56CAF7F05A5}");
 	if (hr!=ERROR_SUCCESS)
 	{
 		lout << "Fail" << endl;
