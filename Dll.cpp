@@ -41,7 +41,7 @@ HRESULT DllRegisterServer()
 	}
 	string value = "Squirrel";
 	lout << "Write key \\" << endl;
-	hr = RegSetValueEx(key, NULL, 0, REG_SZ, (const BYTE *) value.c_str(), value.size());
+	hr = RegSetValueExA(key, NULL, 0, REG_SZ, (const BYTE *) value.c_str(), value.size());
 	if (hr!=ERROR_SUCCESS)
 	{
 		lout << "Fail" << endl;
@@ -56,7 +56,7 @@ HRESULT DllRegisterServer()
 	}
 	value = getSelfPath();
 	lout << "Write key \\InprocServer32" << endl;
-	hr = RegSetValueEx(key, NULL, 0, REG_SZ, (const BYTE *) value.c_str(), value.size());
+	hr = RegSetValueExA(key, NULL, 0, REG_SZ, (const BYTE *) value.c_str(), value.size());
 	if (hr!=ERROR_SUCCESS)
 	{
 		lout << "Fail" << endl;
