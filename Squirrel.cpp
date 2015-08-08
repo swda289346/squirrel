@@ -34,11 +34,29 @@ Squirrel::Squirrel() : count(0), enabled(false), candidates(), langBarItemInfo{g
 	wstring ws = fromString(s);
 	wistringstream iss(ws);
 	wstring code, words;
+	bool needNext = false;
 	while (iss >> code >> words)
 	{
 //		lout << toString(code) << " " << toString(words);
 		for (wchar_t c : words)
-			codeTable[code].emplace_back(1, c);
+		{
+			if (needNext)
+			{
+				codeTable[code].back().push_back(c);
+				needNext = false;
+			}
+			else
+			{
+				if (c<0xd800 || c>0xdfff)
+					codeTable[code].emplace_back(1, c);
+				else
+				{
+					codeTable[code].emplace_back(1, c);
+					needNext = true;
+				}
+			}
+		}
+		needNext = false;
 	}
 }
 
