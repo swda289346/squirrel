@@ -143,6 +143,7 @@ STDMETHODIMP Squirrel::Activate(ITfThreadMgr *ptim, TfClientId tid)
 	if (hr!=S_OK)
 		lprintf("AddItem fail %08x\n", hr);
 	langBarItemMgr->Release();
+	keyState.reset();
 	lout << "Activate done" << endl;
 	return S_OK;
 }
@@ -309,13 +310,9 @@ static const map<char, wchar_t> phoneticTable =
 STDMETHODIMP Squirrel::OnKeyDown(ITfContext *pic, WPARAM wParam, LPARAM lParam, BOOL *pfEaten)
 {
 	lout << "OnKeyDown" << endl;
-	if (wParam==16)
+	if (keyState.isCombinedKey(wchar_t(wParam)))
 	{
-		*pfEaten = TRUE;
-		enabled = !enabled;
-		langBarItemSink->OnUpdate(TF_LBI_BTNALL);
-		if (!enabled)
-			disable();
+		*pfEaten = FALSE;
 		return S_OK;
 	}
 	if (enabled && phoneticTable.count(wParam))
@@ -332,6 +329,17 @@ STDMETHODIMP Squirrel::OnKeyDown(ITfContext *pic, WPARAM wParam, LPARAM lParam, 
 STDMETHODIMP Squirrel::OnKeyUp(ITfContext *pic, WPARAM wParam, LPARAM lParam, BOOL *pfEaten)
 {
 	lout << "OnKeyUp" << endl;
+	bool isCombinedKey = keyState.isCombinedKey(wchar_t(wParam));
+	keyState.releaseKey(wchar_t(wParam));
+	if (wParam==16 && !isCombinedKey)
+	{
+		*pfEaten = TRUE;
+		enabled = !enabled;
+		langBarItemSink->OnUpdate(TF_LBI_BTNALL);
+		if (!enabled)
+			disable();
+		return S_OK;
+	}
 	*pfEaten = FALSE;
 	return S_OK;
 }
@@ -351,9 +359,10 @@ STDMETHODIMP Squirrel::OnSetFocus(BOOL fForeground)
 STDMETHODIMP Squirrel::OnTestKeyDown(ITfContext *pic, WPARAM wParam, LPARAM lParam, BOOL *pfEaten)
 {
 	lout << "OnTestKeyDown" << endl;
-	if (wParam==16)
+	keyState.setKey(wchar_t(wParam));
+	if (keyState.isCombinedKey(wchar_t(wParam)))
 	{
-		*pfEaten = TRUE;
+		*pfEaten = FALSE;
 		return S_OK;
 	}
 	if (enabled && phoneticTable.count(wParam))
@@ -372,6 +381,12 @@ STDMETHODIMP Squirrel::OnTestKeyDown(ITfContext *pic, WPARAM wParam, LPARAM lPar
 STDMETHODIMP Squirrel::OnTestKeyUp(ITfContext *pic, WPARAM wParam, LPARAM lParam, BOOL *pfEaten)
 {
 	lout << "OnTestKeyUp" << endl;
+	if (wParam==16 && !keyState.isCombinedKey(wchar_t(wParam)))
+	{
+		*pfEaten = TRUE;
+		return S_OK;
+	}
+	keyState.releaseKey(wchar_t(wParam));
 	*pfEaten = FALSE;
 	return S_OK;
 }

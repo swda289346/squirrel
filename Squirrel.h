@@ -6,6 +6,7 @@
 #include <windows.h>
 #include <msctf.h>
 #include "CandidateWindow.h"
+#include "KeyState.h"
 using namespace std;
 
 // {7841FDFF-FBE7-4D1F-9E57-F56CAF7F05A5}
@@ -28,6 +29,7 @@ class Squirrel : IUnknown, ITfTextInputProcessor, ITfSource, ITfLangBarItemButto
 		ITfComposition *composition;
 		CandidateWindow *candidateWindow;
 		map<wstring, vector<wstring>> codeTable;
+		KeyState keyState;
 		
 		Squirrel();
 		void putChar(ITfContext *pic, wchar_t c);
