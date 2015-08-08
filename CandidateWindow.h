@@ -13,6 +13,7 @@ class CandidateWindow
 		HWND hwnd;
 		int page;
 		vector<wstring> candidates;
+		HFONT font;
 		
 		CandidateWindow(HINSTANCE hInstance, HWND parent, vector<wstring> candidates);
 		~CandidateWindow();

@@ -35,9 +35,15 @@ CandidateWindow::CandidateWindow(HINSTANCE hInstance, HWND parent, vector<wstrin
 	wc.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
 	hr = RegisterClassEx(&wc);
 	lprintf("RegisterClassEx %08x\n", hr);
-	hwnd = CreateWindowEx(WS_EX_TOOLWINDOW|WS_EX_TOPMOST, L"Candidate", L"Candidate", WS_POPUP|WS_CLIPCHILDREN, CW_USEDEFAULT, CW_USEDEFAULT, 100, 360, parent, NULL, hInstance, NULL);
+	hwnd = CreateWindowEx(WS_EX_TOOLWINDOW|WS_EX_TOPMOST, L"Candidate", L"Candidate", WS_POPUP|WS_CLIPCHILDREN, CW_USEDEFAULT, CW_USEDEFAULT, 70, 360, parent, NULL, hInstance, NULL);
 	lprintf("CreateWindow %08x\n", hwnd);
 	m[hwnd] = this;
+	font = (HFONT) GetStockObject(DEFAULT_GUI_FONT);
+	LOGFONT logFont;
+	GetObject(font, sizeof(LOGFONT), &logFont);
+	logFont.lfHeight = 36;
+	logFont.lfWeight = FW_BOLD;
+	font = CreateFontIndirect(&logFont);
 	ShowWindow(hwnd, 1);
 	UpdateWindow(hwnd);
 }
@@ -55,14 +61,14 @@ void CandidateWindow::nextPage()
 	if (candidates.size()<=page*9)
 		page = 0;
 	RECT rec;
-	SetRect(&rec, 0, 0, 100, 360);
+	SetRect(&rec, 0, 0, 70, 360);
 	InvalidateRect(hwnd, &rec, TRUE);
 }
 
 static void setText(HWND hwnd, HDC hdc, int x, int y, wstring text)
 {
 	RECT rec;
-	SetRect(&rec, 0, 0, 100, 360);
+	SetRect(&rec, 0, 0, 70, 360);
 	TextOut(hdc, x, y, text.c_str(), text.size());
 }
 
@@ -70,6 +76,7 @@ void CandidateWindow::update()
 {
 	PAINTSTRUCT ps;
 	HDC hdc = BeginPaint(hwnd, &ps);
+	SelectObject(hdc, font);
 	setText(hwnd, hdc, 0, 0, L"1");
 	setText(hwnd, hdc, 0, 40, L"2");
 	setText(hwnd, hdc, 0, 80, L"3");
@@ -86,7 +93,7 @@ void CandidateWindow::update()
 		{
 			lout << "draw " << pos << endl;
 			const wstring text = candidates[pos];
-			setText(hwnd, hdc, 20, 40*i, text);
+			setText(hwnd, hdc, 30, 40*i, text);
 		}
 	}
 	EndPaint(hwnd, &ps);
