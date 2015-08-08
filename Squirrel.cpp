@@ -103,6 +103,12 @@ HRESULT __stdcall Squirrel::QueryInterface(REFIID iid, void **ret)
 		*ret = (ITfEditSession *) this;
 		return S_OK;
 	}
+	if (iid==IID_ITfCompositionSink)
+	{
+		this->AddRef();
+		*ret = (ITfCompositionSink *) this;
+		return S_OK;
+	}
 	return E_NOINTERFACE;
 }
 
@@ -315,6 +321,12 @@ STDMETHODIMP Squirrel::OnKeyDown(ITfContext *pic, WPARAM wParam, LPARAM lParam, 
 		*pfEaten = FALSE;
 		return S_OK;
 	}
+	if (enabled && wParam==27)
+	{
+		putChar(pic, wchar_t(wParam));
+		*pfEaten = FALSE;
+		return S_OK;
+	}
 	if (enabled && phoneticTable.count(wParam))
 	{
 		*pfEaten = TRUE;
@@ -400,6 +412,21 @@ HRESULT __stdcall Squirrel::DoEditSession(TfEditCookie ec)
 {
 	lout << "DoEditSession" << endl;
 	HRESULT hr;
+	if (textToSet==27)
+	{
+		lout << "textToSet==" << textToSet << " EndComposition" << endl;
+		composition->EndComposition(ec);
+		composition->Release();
+		composition = NULL;
+		if (candidates.size())
+			candidates.clear();
+		if (candidateWindow)
+		{
+			delete candidateWindow;
+			candidateWindow = NULL;
+		}
+		return S_OK;
+	}
 	if (composition==NULL)
 	{
 		ITfContextComposition *contextComposition = NULL;
@@ -412,7 +439,7 @@ HRESULT __stdcall Squirrel::DoEditSession(TfEditCookie ec)
 		hr = insertAtSelection->InsertTextAtSelection(ec, TF_IAS_QUERYONLY, NULL, 0, &range);
 		lprintf("InsertTextAtSelection %08x %08x\n", hr, range);
 		insertAtSelection->Release();
-		hr = contextComposition->StartComposition(ec, range, this, &composition);
+		hr = contextComposition->StartComposition(ec, range, (ITfCompositionSink *) this, &composition);
 		lprintf("StartComposition %08x\n", hr);
 		range->Release();
 		contextComposition->Release();
@@ -491,9 +518,18 @@ HRESULT __stdcall Squirrel::DoEditSession(TfEditCookie ec)
 	return S_OK;
 }
 
+// TODO
 HRESULT __stdcall Squirrel::OnCompositionTerminated(TfEditCookie ecWrite, ITfComposition *pComposition)
 {
+	lout << "OnCompositionTerminated" << endl;
 	composition->Release();
 	composition = NULL;
+	if (candidates.size())
+		candidates.clear();
+	if (candidateWindow)
+	{
+		delete candidateWindow;
+		candidateWindow = NULL;
+	}
 	return S_OK;
 }
