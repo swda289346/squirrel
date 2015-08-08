@@ -55,6 +55,16 @@ void Squirrel::putChar(ITfContext *pic, wchar_t c)
 	lout << "putChar done" << endl;
 }
 
+void Squirrel::disable()
+{
+	if (candidateWindow)
+	{
+		delete candidateWindow;
+		candidateWindow = NULL;
+	}
+	candidates.clear();
+}
+
 HRESULT __stdcall Squirrel::QueryInterface(REFIID iid, void **ret)
 {
 	if (iid==IID_IUnknown)
@@ -141,6 +151,7 @@ STDMETHODIMP Squirrel::Deactivate()
 {
 	lout << "Deactivate" << endl;
 	HRESULT hr;
+	disable();
 	ITfKeystrokeMgr *keystrokeMgr = NULL;
 	hr = ptim->QueryInterface(IID_ITfKeystrokeMgr, (void **) &keystrokeMgr);
 	if (hr!=S_OK)
@@ -238,6 +249,8 @@ HRESULT __stdcall Squirrel::OnClick(TfLBIClick click, POINT pt, const RECT *prcA
 	lout << "OnClick" << endl;
 	enabled = !enabled;
 	langBarItemSink->OnUpdate(TF_LBI_BTNALL);
+	if (!enabled)
+		disable();
 	return S_OK;
 }
 
@@ -296,6 +309,15 @@ static const map<char, wchar_t> phoneticTable =
 STDMETHODIMP Squirrel::OnKeyDown(ITfContext *pic, WPARAM wParam, LPARAM lParam, BOOL *pfEaten)
 {
 	lout << "OnKeyDown" << endl;
+	if (wParam==16)
+	{
+		*pfEaten = TRUE;
+		enabled = !enabled;
+		langBarItemSink->OnUpdate(TF_LBI_BTNALL);
+		if (!enabled)
+			disable();
+		return S_OK;
+	}
 	if (enabled && phoneticTable.count(wParam))
 	{
 		*pfEaten = TRUE;
@@ -331,8 +353,8 @@ STDMETHODIMP Squirrel::OnTestKeyDown(ITfContext *pic, WPARAM wParam, LPARAM lPar
 	lout << "OnTestKeyDown" << endl;
 	if (wParam==16)
 	{
-		enabled = !enabled;
-		langBarItemSink->OnUpdate(TF_LBI_BTNALL);
+		*pfEaten = TRUE;
+		return S_OK;
 	}
 	if (enabled && phoneticTable.count(wParam))
 	{
