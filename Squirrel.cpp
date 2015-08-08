@@ -377,6 +377,11 @@ STDMETHODIMP Squirrel::OnTestKeyDown(ITfContext *pic, WPARAM wParam, LPARAM lPar
 		*pfEaten = FALSE;
 		return S_OK;
 	}
+	if (composition==NULL && wParam==' ')
+	{
+		*pfEaten = FALSE;
+		return S_OK;
+	}
 	if (enabled && phoneticTable.count(wParam))
 	{
 		*pfEaten = TRUE;
