@@ -13,12 +13,24 @@ using namespace std;
 static const GUID GUID_LBI_INPUTMODE = 
 { 0x2C77A81E, 0x41CC, 0x4178, { 0xA3, 0xA7, 0x5F, 0x8A, 0x98, 0x75, 0x68, 0xE6}};
 
+string loadTable()
+{
+	string ans;
+	HRSRC hRsrc = FindResource((HINSTANCE) &__ImageBase, L"TABLE", L"TEXT");
+	if (hRsrc)
+	{
+		lout << "FindResource" << endl;
+		HGLOBAL hGlob = LoadResource((HINSTANCE) &__ImageBase, hRsrc);
+		const char *ptr = (const char *) LockResource(hGlob);
+		ans = string(ptr, SizeofResource((HINSTANCE) &__ImageBase, hRsrc));
+//		lout << ans << endl;
+	}
+	return ans;
+}
+
 Squirrel::Squirrel() : count(0), enabled(false), candidates(), langBarItemInfo{guid, GUID_LBI_INPUTMODE, TF_LBI_STYLE_BTN_BUTTON|TF_LBI_STYLE_SHOWNINTRAY, 0, L"Squirrel"}, composition(NULL), candidateWindow(NULL)
 {
-	ifstream fin("c:\\windows\\system32\\code.txt");
-	ostringstream oss;
-	oss << fin.rdbuf();
-	string s = oss.str();
+	string s = loadTable();
 	wstring ws = fromString(s);
 	wistringstream iss(ws);
 	wstring code, words;
