@@ -534,6 +534,12 @@ HRESULT __stdcall Squirrel::DoEditSession(TfEditCookie ec)
 		ITfRange *range = NULL;
 		hr = composition->GetRange(&range);
 		range->SetText(ec, 0, textString.c_str(), textString.size());
+		TF_SELECTION selection;
+		selection.range = range;
+		range->Collapse(ec, TF_ANCHOR_END);
+		selection.style.ase = TF_AE_NONE;
+		selection.style.fInterimChar = FALSE;
+		pic->SetSelection(ec, 1, &selection);
 		range->Release();
 		delete candidateWindow;
 		candidateWindow = NULL;
