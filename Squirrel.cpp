@@ -331,9 +331,31 @@ static const map<char, wchar_t> phoneticTable =
 	{' ', L' '},
 };
 
+static const map<char, wchar_t> PunctuationTable =
+{
+	{'1', L'¡I'},
+	{188, L'¡A'},
+	{190, L'¡C'},
+	{191, L'¡H'},
+};
+
+static bool isPunctuation(wchar_t c)
+{
+	for (auto p : PunctuationTable)
+		if (p.second==c)
+			return true;
+	return false;
+}
+
 STDMETHODIMP Squirrel::OnKeyDown(ITfContext *pic, WPARAM wParam, LPARAM lParam, BOOL *pfEaten)
 {
 	lout << "OnKeyDown" << endl;
+	if (enabled && keyState.isCombinedKey(wchar_t(wParam)) && PunctuationTable.count(wParam) && composition==NULL)
+	{
+		*pfEaten = TRUE;
+		putChar(pic, PunctuationTable.at(wParam));
+		return S_OK;
+	}
 	if (keyState.isCombinedKey(wchar_t(wParam)))
 	{
 		*pfEaten = FALSE;
@@ -390,6 +412,11 @@ STDMETHODIMP Squirrel::OnTestKeyDown(ITfContext *pic, WPARAM wParam, LPARAM lPar
 {
 	lout << "OnTestKeyDown" << endl;
 	keyState.setKey(wchar_t(wParam));
+	if (enabled && keyState.isCombinedKey(wchar_t(wParam)) && PunctuationTable.count(wParam) && composition==NULL)
+	{
+		*pfEaten = TRUE;
+		return S_OK;
+	}
 	if (keyState.isCombinedKey(wchar_t(wParam)))
 	{
 		*pfEaten = FALSE;
@@ -448,6 +475,19 @@ HRESULT __stdcall Squirrel::DoEditSession(TfEditCookie ec)
 			delete candidateWindow;
 			candidateWindow = NULL;
 		}
+		return S_OK;
+	}
+	if (isPunctuation(textToSet))
+	{
+		ITfInsertAtSelection *insertAtSelection = NULL;
+		hr = pic->QueryInterface(IID_ITfInsertAtSelection, (void **) &insertAtSelection);
+		lprintf("QueryInterface InsertAtSelection %08x\n", hr);
+		ITfRange *range = NULL;
+		hr = insertAtSelection->InsertTextAtSelection(ec, TF_IAS_QUERYONLY, NULL, 0, &range);
+		lprintf("InsertTextAtSelection %08x %08x\n", hr, range);
+		insertAtSelection->Release();
+		range->SetText(ec, 0, &textToSet, 1);
+		range->Release();
 		return S_OK;
 	}
 	if (composition==NULL)
