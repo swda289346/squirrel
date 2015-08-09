@@ -15,7 +15,7 @@ class CandidateWindow
 		vector<wstring> candidates;
 		HFONT font;
 		
-		CandidateWindow(HINSTANCE hInstance, HWND parent, vector<wstring> candidates);
+		CandidateWindow(HINSTANCE hInstance, HWND parent, vector<wstring> candidates, int x, int y);
 		~CandidateWindow();
 		void nextPage();
 		void update();

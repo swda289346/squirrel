@@ -534,8 +534,25 @@ HRESULT __stdcall Squirrel::DoEditSession(TfEditCookie ec)
 		else
 			candidates = vector<wstring>(1, textString);
 		page = 0;
-		candidateWindow = new CandidateWindow((HINSTANCE) &__ImageBase, parent, candidates);
-		SetFocus(parent);
+		RECT rect;
+		BOOL clip;
+		contextView->GetTextExt(ec, range, &rect, &clip);
+		int x = rect.left, y = rect.bottom;
+		HMONITOR hMonitor = MonitorFromWindow(parent, MONITOR_DEFAULTTONULL);
+		if (hMonitor!=NULL)
+		{
+			MONITORINFO monitorInfo;
+			monitorInfo.cbSize = sizeof(MONITORINFO);
+			BOOL ret = GetMonitorInfo(hMonitor, &monitorInfo);
+			lout << "GetMonitorInfo " << ret << endl;
+			lout << monitorInfo.rcMonitor.top << " " << monitorInfo.rcMonitor.bottom << " " << monitorInfo.rcMonitor.left << " " << monitorInfo.rcMonitor.right << endl;
+			if (x+70>monitorInfo.rcMonitor.right)
+				x = monitorInfo.rcMonitor.right-70;
+			if (y+360>monitorInfo.rcMonitor.bottom)
+				y = monitorInfo.rcMonitor.bottom-360;
+		}
+		candidateWindow = new CandidateWindow((HINSTANCE) &__ImageBase, parent, candidates, x, y);
+		contextView->Release();
 	}
 	lout << "DoEditSession done" << endl;
 	return S_OK;

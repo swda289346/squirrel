@@ -18,7 +18,7 @@ static LRESULT CALLBACK myWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
 	}
 }
 
-CandidateWindow::CandidateWindow(HINSTANCE hInstance, HWND parent, vector<wstring> candidates) : hInstance(hInstance), page(0), candidates(candidates)
+CandidateWindow::CandidateWindow(HINSTANCE hInstance, HWND parent, vector<wstring> candidates, int x, int y) : hInstance(hInstance), page(0), candidates(candidates)
 {
 	HRESULT hr;
 	wc.cbSize = sizeof(WNDCLASSEX);
@@ -35,7 +35,7 @@ CandidateWindow::CandidateWindow(HINSTANCE hInstance, HWND parent, vector<wstrin
 	wc.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
 	hr = RegisterClassEx(&wc);
 	lprintf("RegisterClassEx %08x\n", hr);
-	hwnd = CreateWindowEx(WS_EX_TOOLWINDOW|WS_EX_TOPMOST, L"Candidate", L"Candidate", WS_POPUP|WS_CLIPCHILDREN, CW_USEDEFAULT, CW_USEDEFAULT, 70, 360, parent, NULL, hInstance, NULL);
+	hwnd = CreateWindowEx(WS_EX_TOOLWINDOW|WS_EX_TOPMOST, L"Candidate", L"Candidate", WS_POPUP|WS_CLIPCHILDREN, x, y, 70, 360, parent, NULL, hInstance, NULL);
 	lprintf("CreateWindow %08x\n", hwnd);
 	m[hwnd] = this;
 	font = (HFONT) GetStockObject(DEFAULT_GUI_FONT);
@@ -44,7 +44,7 @@ CandidateWindow::CandidateWindow(HINSTANCE hInstance, HWND parent, vector<wstrin
 	logFont.lfHeight = 36;
 	logFont.lfWeight = FW_BOLD;
 	font = CreateFontIndirect(&logFont);
-	ShowWindow(hwnd, 1);
+	ShowWindow(hwnd, SW_SHOWNOACTIVATE);
 	UpdateWindow(hwnd);
 }
 
