@@ -73,6 +73,18 @@ void Squirrel::putChar(ITfContext *pic, wchar_t c)
 	lout << "putChar done" << endl;
 }
 
+void Squirrel::putCharToComposition(wchar_t c)
+{
+	if (composition)
+	{
+		ITfRange *range = NULL;
+		composition->GetRange(&range);
+		ITfContext *context = NULL;
+		range->GetContext(&context);
+		putChar(context, c);
+	}
+}
+
 void Squirrel::disable()
 {
 	if (candidateWindow)
@@ -80,6 +92,7 @@ void Squirrel::disable()
 		delete candidateWindow;
 		candidateWindow = NULL;
 	}
+	putCharToComposition(27);
 }
 
 HRESULT __stdcall Squirrel::QueryInterface(REFIID iid, void **ret)

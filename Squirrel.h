@@ -31,6 +31,7 @@ class Squirrel : IUnknown, ITfTextInputProcessor, ITfSource, ITfLangBarItemButto
 		
 		Squirrel();
 		void putChar(ITfContext *pic, wchar_t c);
+		void putCharToComposition(wchar_t c);
 		void disable();
 		
 		HRESULT __stdcall QueryInterface(REFIID iid, void **ret);
