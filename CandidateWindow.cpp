@@ -18,7 +18,7 @@ static LRESULT CALLBACK myWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
 	}
 }
 
-CandidateWindow::CandidateWindow(HINSTANCE hInstance, HWND parent, vector<wstring> candidates, int x, int y) : hInstance(hInstance), page(0), candidates(candidates)
+CandidateWindow::CandidateWindow(HINSTANCE hInstance, HWND parent, vector<wstring> candidates, int x, int y) : hInstance(hInstance), pos(0), page(0), candidates(candidates)
 {
 	HRESULT hr;
 	wc.cbSize = sizeof(WNDCLASSEX);
@@ -54,15 +54,66 @@ CandidateWindow::~CandidateWindow()
 	UnregisterClass(L"Candidate", hInstance);
 }
 
+static void redraw(HWND hwnd)
+{
+	RECT rec;
+	SetRect(&rec, 0, 0, 70, 360);
+	InvalidateRect(hwnd, &rec, TRUE);
+}
+
+void CandidateWindow::nextItem()
+{
+	pos++;
+	if (pos>=9)
+	{
+		pos = 0;
+		nextPage();
+	}
+	redraw(hwnd);
+}
+
+void CandidateWindow::lastItem()
+{
+	pos--;
+	if (pos<0)
+	{
+		pos = 8;
+		lastPage();
+	}
+	redraw(hwnd);
+}
+
 void CandidateWindow::nextPage()
 {
 	lout << "CandidateWindow::nextPage" << endl;
 	page++;
 	if (candidates.size()<=page*9)
 		page = 0;
-	RECT rec;
-	SetRect(&rec, 0, 0, 70, 360);
-	InvalidateRect(hwnd, &rec, TRUE);
+	redraw(hwnd);
+}
+
+void CandidateWindow::lastPage()
+{
+	page--;
+	if (page<0)
+		page = (candidates.size()+8)/9-1;
+	if (page<0)
+		page = 0;
+	redraw(hwnd);
+}
+
+wstring CandidateWindow::getCandidate() const
+{
+	return getCandidate(pos);
+}
+
+wstring CandidateWindow::getCandidate(int pos) const
+{
+	pos += page*9;
+	wstring ans = L"";
+	if (pos<candidates.size())
+		ans = candidates[pos];
+	return ans;
 }
 
 static void setText(HWND hwnd, HDC hdc, int x, int y, wstring text)
@@ -92,7 +143,9 @@ void CandidateWindow::update()
 		if (pos<candidates.size())
 		{
 			lout << "draw " << pos << endl;
-			const wstring text = candidates[pos];
+			wstring text = candidates[pos];
+			if (this->pos==i)
+				text += L"<";
 			setText(hwnd, hdc, 30, 40*i, text);
 		}
 	}

@@ -18,8 +18,6 @@ class Squirrel : IUnknown, ITfTextInputProcessor, ITfSource, ITfLangBarItemButto
 	public:
 		int count;
 		bool enabled;
-		int page;
-		vector<wstring> candidates;
 		ITfThreadMgr *ptim;
 		TfClientId tid;
 		TF_LANGBARITEMINFO langBarItemInfo;

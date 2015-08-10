@@ -28,7 +28,7 @@ string loadTable()
 	return ans;
 }
 
-Squirrel::Squirrel() : count(0), enabled(false), candidates(), langBarItemInfo{guid, GUID_LBI_INPUTMODE, TF_LBI_STYLE_BTN_BUTTON|TF_LBI_STYLE_SHOWNINTRAY, 0, L"Squirrel"}, composition(NULL), candidateWindow(NULL)
+Squirrel::Squirrel() : count(0), enabled(false), langBarItemInfo{guid, GUID_LBI_INPUTMODE, TF_LBI_STYLE_BTN_BUTTON|TF_LBI_STYLE_SHOWNINTRAY, 0, L"Squirrel"}, composition(NULL), candidateWindow(NULL)
 {
 	string s = loadTable();
 	wstring ws = fromString(s);
@@ -80,7 +80,6 @@ void Squirrel::disable()
 		delete candidateWindow;
 		candidateWindow = NULL;
 	}
-	candidates.clear();
 }
 
 HRESULT __stdcall Squirrel::QueryInterface(REFIID iid, void **ret)
@@ -367,6 +366,12 @@ STDMETHODIMP Squirrel::OnKeyDown(ITfContext *pic, WPARAM wParam, LPARAM lParam, 
 		*pfEaten = FALSE;
 		return S_OK;
 	}
+	if (candidateWindow && (wParam==38||wParam==40||wParam==13))
+	{
+		*pfEaten = TRUE;
+		putChar(pic, wParam);
+		return S_OK;
+	}
 	if (enabled && phoneticTable.count(wParam))
 	{
 		*pfEaten = TRUE;
@@ -427,6 +432,11 @@ STDMETHODIMP Squirrel::OnTestKeyDown(ITfContext *pic, WPARAM wParam, LPARAM lPar
 		*pfEaten = FALSE;
 		return S_OK;
 	}
+	if (candidateWindow && (wParam==38||wParam==40||wParam==13))
+	{
+		*pfEaten = TRUE;
+		return S_OK;
+	}
 	if (enabled && phoneticTable.count(wParam))
 	{
 		*pfEaten = TRUE;
@@ -468,8 +478,6 @@ HRESULT __stdcall Squirrel::DoEditSession(TfEditCookie ec)
 		composition->EndComposition(ec);
 		composition->Release();
 		composition = NULL;
-		if (candidates.size())
-			candidates.clear();
 		if (candidateWindow)
 		{
 			delete candidateWindow;
@@ -507,14 +515,21 @@ HRESULT __stdcall Squirrel::DoEditSession(TfEditCookie ec)
 		range->Release();
 		contextComposition->Release();
 	}
-	if (candidates.size())
+	if (candidateWindow)
 	{
 		if (textToSet==' ')
 		{
-			page = page+1;
-			if (candidates.size()<=page*9)
-				page = 0;
 			candidateWindow->nextPage();
+			return S_OK;
+		}
+		if (textToSet==38)
+		{
+			candidateWindow->lastItem();
+			return S_OK;
+		}
+		if (textToSet==40)
+		{
+			candidateWindow->nextItem();
 			return S_OK;
 		}
 		static const map<wchar_t, int> selectTable =
@@ -529,8 +544,7 @@ HRESULT __stdcall Squirrel::DoEditSession(TfEditCookie ec)
 			{L'£«', 7},
 			{L'£¯', 8},
 		};
-		int pos = page*9+selectTable.at(textToSet);
-		wstring textString = pos<candidates.size()?candidates[pos]:L"";
+		wstring textString = textToSet==13?candidateWindow->getCandidate():candidateWindow->getCandidate(selectTable.at(textToSet));
 		ITfRange *range = NULL;
 		hr = composition->GetRange(&range);
 		range->SetText(ec, 0, textString.c_str(), textString.size());
@@ -543,7 +557,6 @@ HRESULT __stdcall Squirrel::DoEditSession(TfEditCookie ec)
 		range->Release();
 		delete candidateWindow;
 		candidateWindow = NULL;
-		candidates.clear();
 		composition->EndComposition(ec);
 		composition->Release();
 		composition = NULL;
@@ -575,11 +588,11 @@ HRESULT __stdcall Squirrel::DoEditSession(TfEditCookie ec)
 		HWND parent, child;
 		hr = contextView->GetWnd(&parent);
 		lprintf("GetWnd %08x %08x\n", hr, parent);
+		vector<wstring> candidates;
 		if (codeTable.count(textString))
 			candidates = codeTable[textString];
 		else
 			candidates = vector<wstring>(1, textString);
-		page = 0;
 		RECT rect;
 		BOOL clip;
 		contextView->GetTextExt(ec, range, &rect, &clip);
@@ -610,8 +623,6 @@ HRESULT __stdcall Squirrel::OnCompositionTerminated(TfEditCookie ecWrite, ITfCom
 	lout << "OnCompositionTerminated" << endl;
 	composition->Release();
 	composition = NULL;
-	if (candidates.size())
-		candidates.clear();
 	if (candidateWindow)
 	{
 		delete candidateWindow;
