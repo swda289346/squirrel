@@ -39,9 +39,9 @@ HRESULT DllRegisterServer()
 		lout << "Fail" << endl;
 		return E_FAIL;
 	}
-	string value = "Squirrel";
+	wstring value = L"Squirrel";
 	lout << "Write key \\" << endl;
-	hr = RegSetValueExA(key, NULL, 0, REG_SZ, (const BYTE *) value.c_str(), value.size());
+	hr = RegSetValueExW(key, NULL, 0, REG_SZ, (const BYTE *) value.c_str(), (value.size()+1)*sizeof(wchar_t));
 	if (hr!=ERROR_SUCCESS)
 	{
 		lout << "Fail" << endl;
@@ -54,17 +54,17 @@ HRESULT DllRegisterServer()
 		lout << "Fail" << endl;
 		return E_FAIL;
 	}
-	value = getSelfPath();
+	value = fromString(getSelfPath());
 	lout << "Write key \\InprocServer32" << endl;
-	hr = RegSetValueExA(key, NULL, 0, REG_SZ, (const BYTE *) value.c_str(), value.size());
+	hr = RegSetValueExW(key, NULL, 0, REG_SZ, (const BYTE *) value.c_str(), (value.size()+1)*sizeof(wchar_t));
 	if (hr!=ERROR_SUCCESS)
 	{
 		lout << "Fail" << endl;
 		return E_FAIL;
 	}
-	value = "Apartment";
+	value = L"Apartment";
 	lout << "Write key \\InprocServer32\\ThreadingModel" << endl;
-	hr = RegSetValueExA(key, "ThreadingModel", 0, REG_SZ, (const BYTE *) value.c_str(), value.size());
+	hr = RegSetValueExW(key, L"ThreadingModel", 0, REG_SZ, (const BYTE *) value.c_str(), (value.size()+1)*sizeof(wchar_t));
 	if (hr!=ERROR_SUCCESS)
 	{
 		lout << "Fail" << endl;
