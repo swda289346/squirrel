@@ -95,6 +95,18 @@ void Squirrel::disable()
 	putCharToComposition(27);
 }
 
+void Squirrel::completeComposition(TfEditCookie ec)
+{
+	composition->EndComposition(ec);
+	composition->Release();
+	composition = NULL;
+	if (candidateWindow)
+	{
+		delete candidateWindow;
+		candidateWindow = NULL;
+	}
+}
+
 HRESULT __stdcall Squirrel::QueryInterface(REFIID iid, void **ret)
 {
 	if (iid==IID_IUnknown)
@@ -488,14 +500,11 @@ HRESULT __stdcall Squirrel::DoEditSession(TfEditCookie ec)
 	if (textToSet==27)
 	{
 		lout << "textToSet==" << textToSet << " EndComposition" << endl;
-		composition->EndComposition(ec);
-		composition->Release();
-		composition = NULL;
-		if (candidateWindow)
-		{
-			delete candidateWindow;
-			candidateWindow = NULL;
-		}
+		ITfRange *range = NULL;
+		composition->GetRange(&range);
+		range->SetText(ec, 0, NULL, 0);
+		range->Release();
+		completeComposition(ec);
 		return S_OK;
 	}
 	if (isPunctuation(textToSet))
@@ -568,11 +577,7 @@ HRESULT __stdcall Squirrel::DoEditSession(TfEditCookie ec)
 		selection.style.fInterimChar = FALSE;
 		pic->SetSelection(ec, 1, &selection);
 		range->Release();
-		delete candidateWindow;
-		candidateWindow = NULL;
-		composition->EndComposition(ec);
-		composition->Release();
-		composition = NULL;
+		completeComposition(ec);
 		return S_OK;
 	}
 	ITfRange *range = NULL;
@@ -631,10 +636,13 @@ HRESULT __stdcall Squirrel::DoEditSession(TfEditCookie ec)
 	return S_OK;
 }
 
-// TODO
 HRESULT __stdcall Squirrel::OnCompositionTerminated(TfEditCookie ecWrite, ITfComposition *pComposition)
 {
 	lout << "OnCompositionTerminated" << endl;
+	ITfRange *range = NULL;
+	composition->GetRange(&range);
+	range->SetText(ecWrite, 0, NULL, 0);
+	range->Release();
 	composition->Release();
 	composition = NULL;
 	if (candidateWindow)

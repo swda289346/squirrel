@@ -33,6 +33,7 @@ class Squirrel : IUnknown, ITfTextInputProcessor, ITfSource, ITfLangBarItemButto
 		void putChar(ITfContext *pic, wchar_t c);
 		void putCharToComposition(wchar_t c);
 		void disable();
+		void completeComposition(TfEditCookie ec);
 		
 		HRESULT __stdcall QueryInterface(REFIID iid, void **ret);
 		ULONG __stdcall AddRef();
