@@ -1,5 +1,6 @@
 #include <map>
 #include <windows.h>
+#include <windowsx.h>
 #include "CandidateWindow.h"
 #include "util.h"
 using namespace std;
@@ -12,6 +13,9 @@ static LRESULT CALLBACK myWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
 	{
 		case WM_PAINT:
 			m[hwnd]->update();
+			break;
+		case WM_LBUTTONDOWN:
+			m[hwnd]->onClick(GET_X_LPARAM(lParam),GET_Y_LPARAM(lParam));
 			break;
 		default:
 			return DefWindowProc(hwnd, msg, wParam, lParam);
@@ -99,6 +103,17 @@ void CandidateWindow::lastPage()
 		page = (candidates.size()+8)/9-1;
 	if (page<0)
 		page = 0;
+	redraw(hwnd);
+}
+
+void CandidateWindow::onClick(short x, short y)
+{
+	lout << "CandidateWindow::onClick " << x << " " << y << endl;
+	pos = y/40;
+	if (pos>=9)
+		pos = 0;
+	if (onSelect)
+		onSelect();
 	redraw(hwnd);
 }
 

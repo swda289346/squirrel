@@ -624,6 +624,7 @@ HRESULT __stdcall Squirrel::DoEditSession(TfEditCookie ec)
 				y = monitorInfo.rcMonitor.bottom-360;
 		}
 		candidateWindow = new CandidateWindow((HINSTANCE) &__ImageBase, parent, candidates, x, y);
+		candidateWindow->onSelect = bind(&Squirrel::putCharToComposition, this, 13);
 		contextView->Release();
 	}
 	lout << "DoEditSession done" << endl;
