@@ -151,6 +151,12 @@ HRESULT __stdcall Squirrel::QueryInterface(REFIID iid, void **ret)
 		*ret = (ITfCompositionSink *) this;
 		return S_OK;
 	}
+	if (iid==IID_ITfThreadFocusSink)
+	{
+		this->AddRef();
+		*ret = (ITfThreadFocusSink *) this;
+		return S_OK;
+	}
 	return E_NOINTERFACE;
 }
 
@@ -192,6 +198,11 @@ STDMETHODIMP Squirrel::Activate(ITfThreadMgr *ptim, TfClientId tid)
 		lprintf("AddItem fail %08x\n", hr);
 	langBarItemMgr->Release();
 	keyState.reset();
+	ITfSource *source;
+	ptim->QueryInterface(IID_ITfSource, (void **) &source);
+	DWORD tmp;
+	source->AdviseSink(IID_ITfThreadFocusSink, this, &tmp);
+	source->Release();
 	lout << "Activate done" << endl;
 	return S_OK;
 }
@@ -672,5 +683,19 @@ HRESULT __stdcall Squirrel::OnCompositionTerminated(TfEditCookie ecWrite, ITfCom
 		delete candidateWindow;
 		candidateWindow = NULL;
 	}
+	return S_OK;
+}
+
+HRESULT __stdcall Squirrel::OnKillThreadFocus()
+{
+	if (candidateWindow)
+		candidateWindow->hide();
+	return S_OK;
+}
+
+HRESULT __stdcall Squirrel::OnSetThreadFocus()
+{
+	if (candidateWindow)
+		candidateWindow->show();
 	return S_OK;
 }

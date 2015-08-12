@@ -20,6 +20,8 @@ class CandidateWindow
 		
 		CandidateWindow(HINSTANCE hInstance, HWND parent, vector<wstring> candidates, int x, int y);
 		~CandidateWindow();
+		void show();
+		void hide();
 		void nextItem();
 		void lastItem();
 		void nextPage();

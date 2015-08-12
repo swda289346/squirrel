@@ -58,6 +58,16 @@ CandidateWindow::~CandidateWindow()
 	UnregisterClass(L"Candidate", hInstance);
 }
 
+void CandidateWindow::show()
+{
+	ShowWindow(hwnd, SW_SHOWNOACTIVATE);
+}
+
+void CandidateWindow::hide()
+{
+	ShowWindow(hwnd, SW_HIDE);
+}
+
 static void redraw(HWND hwnd)
 {
 	RECT rec;
