@@ -391,7 +391,7 @@ STDMETHODIMP Squirrel::OnKeyDown(ITfContext *pic, WPARAM wParam, LPARAM lParam, 
 		*pfEaten = FALSE;
 		return S_OK;
 	}
-	if (candidateWindow && (wParam==38||wParam==40||wParam==13))
+	if (candidateWindow && (wParam==38||wParam==40||wParam==13||wParam==VK_BACK))
 	{
 		*pfEaten = TRUE;
 		putChar(pic, wParam);
@@ -457,7 +457,7 @@ STDMETHODIMP Squirrel::OnTestKeyDown(ITfContext *pic, WPARAM wParam, LPARAM lPar
 		*pfEaten = FALSE;
 		return S_OK;
 	}
-	if (candidateWindow && (wParam==38||wParam==40||wParam==13))
+	if (candidateWindow && (wParam==38||wParam==40||wParam==13||wParam==VK_BACK))
 	{
 		*pfEaten = TRUE;
 		return S_OK;
@@ -552,6 +552,23 @@ HRESULT __stdcall Squirrel::DoEditSession(TfEditCookie ec)
 		if (textToSet==40)
 		{
 			candidateWindow->nextItem();
+			return S_OK;
+		}
+		if (textToSet==VK_BACK)
+		{
+			ITfRange *range = NULL;
+			composition->GetRange(&range);
+			wchar_t text[1024];
+			ULONG len;
+			range->GetText(ec, 0, text, 1024, &len);
+			text[len] = 0;
+			wstring wText(text);
+			PhoneticCombination combination(wText);
+			combination.clearPos(4);
+			wText = combination.asString();
+			range->SetText(ec, 0, wText.c_str(), wText.size());
+			delete candidateWindow;
+			candidateWindow = NULL;
 			return S_OK;
 		}
 		static const map<wchar_t, int> selectTable =

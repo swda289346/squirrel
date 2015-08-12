@@ -10,5 +10,6 @@ class PhoneticCombination
 		
 		PhoneticCombination(wstring text);
 		void setChar(wchar_t sc);
+		void clearPos(int pos);
 		wstring asString() const;
 };

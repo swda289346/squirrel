@@ -62,6 +62,11 @@ void PhoneticCombination::setChar(wchar_t sc)
 	c[phoneticTypeTable.at(sc)] = (sc!=L' '?sc:0);
 }
 
+void PhoneticCombination::clearPos(int pos)
+{
+	c[pos] = 0;
+}
+
 wstring PhoneticCombination::asString() const
 {
 	wstring ans;
