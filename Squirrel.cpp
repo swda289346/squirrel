@@ -391,7 +391,7 @@ STDMETHODIMP Squirrel::OnKeyDown(ITfContext *pic, WPARAM wParam, LPARAM lParam, 
 		*pfEaten = FALSE;
 		return S_OK;
 	}
-	if (candidateWindow && (wParam==38||wParam==40||wParam==13||wParam==VK_BACK))
+	if (candidateWindow && (wParam==38||wParam==40||wParam==13||wParam==VK_BACK||wParam==VK_PRIOR||wParam==VK_NEXT))
 	{
 		*pfEaten = TRUE;
 		putChar(pic, wParam);
@@ -457,7 +457,7 @@ STDMETHODIMP Squirrel::OnTestKeyDown(ITfContext *pic, WPARAM wParam, LPARAM lPar
 		*pfEaten = FALSE;
 		return S_OK;
 	}
-	if (candidateWindow && (wParam==38||wParam==40||wParam==13||wParam==VK_BACK))
+	if (candidateWindow && (wParam==38||wParam==40||wParam==13||wParam==VK_BACK||wParam==VK_PRIOR||wParam==VK_NEXT))
 	{
 		*pfEaten = TRUE;
 		return S_OK;
@@ -539,7 +539,12 @@ HRESULT __stdcall Squirrel::DoEditSession(TfEditCookie ec)
 	}
 	if (candidateWindow)
 	{
-		if (textToSet==' ')
+		if (textToSet==VK_PRIOR)
+		{
+			candidateWindow->lastPage();
+			return S_OK;
+		}
+		if (textToSet==' ' || textToSet==VK_NEXT)
 		{
 			candidateWindow->nextPage();
 			return S_OK;
