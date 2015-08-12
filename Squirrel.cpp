@@ -643,7 +643,7 @@ HRESULT __stdcall Squirrel::DoEditSession(TfEditCookie ec)
 		if (codeTable.count(textString))
 			candidates = codeTable[textString];
 		else
-			candidates = vector<wstring>(1, textString);
+			return S_OK;
 		RECT rect;
 		BOOL clip;
 		contextView->GetTextExt(ec, range, &rect, &clip);

@@ -60,6 +60,8 @@ static const map<wchar_t, int> phoneticTypeTable =
 void PhoneticCombination::setChar(wchar_t sc)
 {
 	c[phoneticTypeTable.at(sc)] = (sc!=L' '?sc:0);
+	if (phoneticTypeTable.at(sc)!=4)
+		c[4] = 0;
 }
 
 void PhoneticCombination::clearPos(int pos)
