@@ -16,4 +16,6 @@ class KeyState
 		void setKey(wchar_t c);
 		void releaseKey(wchar_t c);
 		bool isCombinedKey(wchar_t c) const;
+		bool isShift() const;
+		bool isOnlyShift() const;
 };

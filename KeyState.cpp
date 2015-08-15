@@ -1,3 +1,4 @@
+#include <windows.h>
 #include "KeyState.h"
 #include "util.h"
 
@@ -31,8 +32,10 @@ void KeyState::setKey(wchar_t c)
 	if (SuperKey.count(c))
 	{
 		if (lastSuperKey[c]==-1)
+		{
 			superKeyCount++;
-		lastSuperKey[c] = count;
+			lastSuperKey[c] = count;
+		}
 	}
 	count++;
 }
@@ -70,4 +73,14 @@ bool KeyState::isCombinedKey(wchar_t c) const
 	lout << "KeyState::isCombinedKey " << int(c) << " " << ans << endl;
 	lout << "KeyState::isCombinedKey superKeyCount = " << superKeyCount << endl;
 	return ans;
+}
+
+bool KeyState::isShift() const
+{
+	return lastSuperKey.at(VK_SHIFT)!=-1;
+}
+
+bool KeyState::isOnlyShift() const
+{
+	return superKeyCount==1&&isShift();
 }

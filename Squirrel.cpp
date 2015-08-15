@@ -400,7 +400,7 @@ static bool isPunctuation(wchar_t c)
 STDMETHODIMP Squirrel::OnKeyDown(ITfContext *pic, WPARAM wParam, LPARAM lParam, BOOL *pfEaten)
 {
 	lout << "OnKeyDown" << endl;
-	if (enabled && keyState.isCombinedKey(wchar_t(wParam)) && PunctuationTable.count(wParam) && composition==NULL)
+	if (enabled && keyState.isCombinedKey(wchar_t(wParam)) && keyState.isOnlyShift() && PunctuationTable.count(wParam) && composition==NULL)
 	{
 		*pfEaten = TRUE;
 		putChar(pic, PunctuationTable.at(wParam));
@@ -468,7 +468,7 @@ STDMETHODIMP Squirrel::OnTestKeyDown(ITfContext *pic, WPARAM wParam, LPARAM lPar
 {
 	lout << "OnTestKeyDown" << endl;
 	keyState.setKey(wchar_t(wParam));
-	if (enabled && keyState.isCombinedKey(wchar_t(wParam)) && PunctuationTable.count(wParam) && composition==NULL)
+	if (enabled && keyState.isCombinedKey(wchar_t(wParam)) && keyState.isOnlyShift() && PunctuationTable.count(wParam) && composition==NULL)
 	{
 		*pfEaten = TRUE;
 		return S_OK;
