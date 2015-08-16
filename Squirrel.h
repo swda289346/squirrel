@@ -13,11 +13,12 @@ using namespace std;
 static const GUID guid = 
 { 0x7841fdff, 0xfbe7, 0x4d1f, { 0x9e, 0x57, 0xf5, 0x6c, 0xaf, 0x7f, 0x5, 0xa5 } };
 
-class Squirrel : IUnknown, ITfTextInputProcessor, ITfSource, ITfLangBarItemButton, ITfKeyEventSink, ITfEditSession, ITfCompositionSink, ITfThreadFocusSink
+class Squirrel : IUnknown, ITfTextInputProcessor, ITfSource, ITfLangBarItemButton, ITfKeyEventSink, ITfEditSession, ITfCompositionSink, ITfThreadFocusSink, ITfThreadMgrEventSink
 {
 	public:
 		int count;
 		bool enabled;
+		bool disabled;
 		ITfThreadMgr *ptim;
 		TfClientId tid;
 		TF_LANGBARITEMINFO langBarItemInfo;
@@ -69,4 +70,10 @@ class Squirrel : IUnknown, ITfTextInputProcessor, ITfSource, ITfLangBarItemButto
 		
 		HRESULT __stdcall OnKillThreadFocus();
 		HRESULT __stdcall OnSetThreadFocus();
+		
+		HRESULT __stdcall OnInitDocumentMgr(ITfDocumentMgr *pdim);
+		HRESULT __stdcall OnPopContext(ITfContext *pic);
+		HRESULT __stdcall OnPushContext(ITfContext *pic);
+		HRESULT __stdcall OnSetFocus(ITfDocumentMgr *pdimFocus, ITfDocumentMgr *pdimPrevFocus);
+		HRESULT __stdcall OnUninitDocumentMgr(ITfDocumentMgr *pdim);
 };

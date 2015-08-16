@@ -157,6 +157,12 @@ HRESULT __stdcall Squirrel::QueryInterface(REFIID iid, void **ret)
 		*ret = (ITfThreadFocusSink *) this;
 		return S_OK;
 	}
+	if (iid==IID_ITfThreadMgrEventSink)
+	{
+		this->AddRef();
+		*ret = (ITfThreadMgrEventSink *) this;
+		return S_OK;
+	}
 	return E_NOINTERFACE;
 }
 
@@ -202,7 +208,9 @@ STDMETHODIMP Squirrel::Activate(ITfThreadMgr *ptim, TfClientId tid)
 	ptim->QueryInterface(IID_ITfSource, (void **) &source);
 	DWORD tmp;
 	source->AdviseSink(IID_ITfThreadFocusSink, this, &tmp);
+	source->AdviseSink(IID_ITfThreadMgrEventSink, this, &tmp);
 	source->Release();
+	disabled = false;
 	lout << "Activate done" << endl;
 	return S_OK;
 }
@@ -265,7 +273,9 @@ HRESULT __stdcall Squirrel::GetStatus(DWORD *pdwStatus)
 HRESULT __stdcall Squirrel::GetTooltipString(BSTR *pbstrToolTip)
 {
 	lout << "GetTooltipString" << endl;
-	if (enabled)
+	if (disabled)
+		*pbstrToolTip = SysAllocString(L"Disabled");
+	else if (enabled)
 		*pbstrToolTip = SysAllocString(L"Squirrel");
 	else
 		*pbstrToolTip = SysAllocString(L"English");
@@ -281,7 +291,9 @@ HRESULT __stdcall Squirrel::Show(BOOL fShow)
 HRESULT __stdcall Squirrel::GetIcon(HICON *phIcon)
 {
 	lout << "GetIcon" << endl;
-	if (enabled)
+	if (disabled)
+		*phIcon = LoadIcon(NULL, IDI_ERROR);
+	else if (enabled)
 		*phIcon = LoadIcon((HINSTANCE) &__ImageBase, L"ICON");
 	else
 		*phIcon = LoadIcon(NULL, IDI_QUESTION);
@@ -291,7 +303,9 @@ HRESULT __stdcall Squirrel::GetIcon(HICON *phIcon)
 HRESULT __stdcall Squirrel::GetText(BSTR *pbstrText)
 {
 	lout << "GetText" << endl;
-	if (enabled)
+	if (disabled)
+		*pbstrText = SysAllocString(L"Disabled");
+	else if (enabled)
 		*pbstrText = SysAllocString(L"Squirrel");
 	else
 		*pbstrText = SysAllocString(L"English");
@@ -713,4 +727,32 @@ HRESULT __stdcall Squirrel::OnSetThreadFocus()
 	if (candidateWindow)
 		candidateWindow->show();
 	return S_OK;
+}
+
+HRESULT __stdcall Squirrel::OnInitDocumentMgr(ITfDocumentMgr *pdim)
+{
+	return E_NOTIMPL;
+}
+
+HRESULT __stdcall Squirrel::OnPopContext(ITfContext *pic)
+{
+	return E_NOTIMPL;
+}
+
+HRESULT __stdcall Squirrel::OnPushContext(ITfContext *pic)
+{
+	return E_NOTIMPL;
+}
+
+HRESULT __stdcall Squirrel::OnSetFocus(ITfDocumentMgr *pdimFocus, ITfDocumentMgr *pdimPrevFocus)
+{
+	lout << "OnSetFocus " << pdimFocus << " " << pdimPrevFocus << endl;
+	disabled = !pdimFocus;
+	langBarItemSink->OnUpdate(TF_LBI_BTNALL);
+	return E_NOTIMPL;
+}
+
+HRESULT __stdcall Squirrel::OnUninitDocumentMgr(ITfDocumentMgr *pdim)
+{
+	return E_NOTIMPL;
 }
