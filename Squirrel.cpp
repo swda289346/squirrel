@@ -645,6 +645,22 @@ HRESULT __stdcall Squirrel::DoEditSession(TfEditCookie ec)
 	ITfRange *range = NULL;
 	hr = composition->GetRange(&range);
 	lprintf("GetRange %08x\n", hr);
+	
+	// get position
+	int x, y;
+	HWND parent;
+	ITfContextView *contextView = NULL;
+	hr = pic->GetActiveView(&contextView);
+	lprintf("GetActiveView %08x %08x\n", hr, contextView);
+	hr = contextView->GetWnd(&parent);
+	lprintf("GetWnd %08x %08x\n", hr, parent);
+	RECT rect;
+	BOOL clip;
+	contextView->GetTextExt(ec, range, &rect, &clip);
+	x = rect.left;
+	y = rect.bottom;
+	contextView->Release();
+	
 	wchar_t text[1024];
 	ULONG len;
 	range->GetText(ec, 0, text, 1024, &len);
@@ -660,6 +676,7 @@ HRESULT __stdcall Squirrel::DoEditSession(TfEditCookie ec)
 	selection.style.ase = TF_AE_NONE;
 	selection.style.fInterimChar = FALSE;
 	pic->SetSelection(ec, 1, &selection);
+	range->Release();
 	if (phoneticCompleteSet.count(textToSet))
 	{
 		ITfContextView *contextView = NULL;
@@ -673,10 +690,6 @@ HRESULT __stdcall Squirrel::DoEditSession(TfEditCookie ec)
 			candidates = codeTable[textString];
 		else
 			return S_OK;
-		RECT rect;
-		BOOL clip;
-		contextView->GetTextExt(ec, range, &rect, &clip);
-		int x = rect.left, y = rect.bottom;
 		HMONITOR hMonitor = MonitorFromWindow(parent, MONITOR_DEFAULTTONULL);
 		if (hMonitor!=NULL)
 		{
