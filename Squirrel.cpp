@@ -4,11 +4,16 @@
 #include <set>
 #include <string>
 #include <windows.h>
+#include <VersionHelpers.h>
 #include "Squirrel.h"
 #include "util.h"
 #include "PhoneticCombination.h"
 #include "CandidateWindow.h"
 using namespace std;
+
+// {218F1835-8469-4778-8ABF-89D705BE229C}
+static const GUID GUID_LBI_BUTTON = 
+{ 0x218f1835, 0x8469, 0x4778, { 0x8a, 0xbf, 0x89, 0xd7, 0x5, 0xbe, 0x22, 0x9c } };
 
 static const GUID GUID_LBI_INPUTMODE = 
 { 0x2C77A81E, 0x41CC, 0x4178, { 0xA3, 0xA7, 0x5F, 0x8A, 0x98, 0x75, 0x68, 0xE6}};
@@ -28,7 +33,7 @@ string loadTable()
 	return ans;
 }
 
-Squirrel::Squirrel() : count(0), enabled(false), langBarItemInfo{guid, GUID_LBI_INPUTMODE, TF_LBI_STYLE_BTN_BUTTON|TF_LBI_STYLE_SHOWNINTRAY, 0, L"Squirrel"}, composition(NULL), candidateWindow(NULL)
+Squirrel::Squirrel() : count(0), enabled(false), composition(NULL), candidateWindow(NULL)
 {
 	string s = loadTable();
 	wstring ws = fromString(s);
@@ -58,6 +63,11 @@ Squirrel::Squirrel() : count(0), enabled(false), langBarItemInfo{guid, GUID_LBI_
 		}
 		needNext = false;
 	}
+	langBarItemSink = NULL;
+	lbi = new SquirrelLangBarItemButton(this, GUID_LBI_BUTTON);
+	lbi->AddRef();
+	lbiTray = new SquirrelLangBarItemButton(this, GUID_LBI_INPUTMODE);
+	lbiTray->AddRef();
 }
 
 void Squirrel::putChar(ITfContext *pic, wchar_t c)
@@ -119,18 +129,6 @@ HRESULT __stdcall Squirrel::QueryInterface(REFIID iid, void **ret)
 	{
 		this->AddRef();
 		*ret = (ITfTextInputProcessor *) this;
-		return S_OK;
-	}
-	if (iid==IID_ITfSource)
-	{
-		this->AddRef();
-		*ret = (ITfSource *) this;
-		return S_OK;
-	}
-	if (iid==IID_ITfLangBarItemButton)
-	{
-		this->AddRef();
-		*ret = (ITfLangBarItemButton *) this;
 		return S_OK;
 	}
 	if (iid==IID_ITfKeyEventSink)
@@ -199,9 +197,20 @@ STDMETHODIMP Squirrel::Activate(ITfThreadMgr *ptim, TfClientId tid)
 	hr = ptim->QueryInterface(IID_ITfLangBarItemMgr, (void **) &langBarItemMgr);
 	if (hr!=S_OK)
 		lprintf("Fail %08x\n", hr);
-	hr = langBarItemMgr->AddItem((ITfLangBarItem *) this);
+	ITfLangBarItemButton *t = NULL;
+	lbi->QueryInterface(IID_ITfLangBarItemButton, (void **) &t);
+	hr = langBarItemMgr->AddItem((ITfLangBarItem *) t);
+	t->Release();
 	if (hr!=S_OK)
 		lprintf("AddItem fail %08x\n", hr);
+	if (IsWindows8OrGreater())
+	{
+		lbiTray->QueryInterface(IID_ITfLangBarItemButton, (void **) &t);
+		hr = langBarItemMgr->AddItem((ITfLangBarItem *) t);
+		t->Release();
+		if (hr!=S_OK)
+			lprintf("AddItem fail %08x\n", hr);
+	}
 	langBarItemMgr->Release();
 	keyState.reset();
 	ITfSource *source;
@@ -233,105 +242,24 @@ STDMETHODIMP Squirrel::Deactivate()
 	hr = ptim->QueryInterface(IID_ITfLangBarItemMgr, (void **) &langBarItemMgr);
 	if (hr!=S_OK)
 		lprintf("Fail %08x\n", hr);
-	hr = langBarItemMgr->RemoveItem(this);
+	ITfLangBarItemButton *t = NULL;
+	lbi->QueryInterface(IID_ITfLangBarItemButton, (void **) &t);
+	hr = langBarItemMgr->RemoveItem((ITfLangBarItem *) t);
+	t->Release();
 	if (hr!=S_OK)
 		lprintf("Fail %08x\n", hr);
+	if (IsWindows8OrGreater())
+	{
+		lbiTray->QueryInterface(IID_ITfLangBarItemButton, (void **) &t);
+		hr = langBarItemMgr->RemoveItem((ITfLangBarItem *) t);
+		t->Release();
+		if (hr!=S_OK)
+			lprintf("Fail %08x\n", hr);
+	}
 	langBarItemMgr->Release();
 	ptim->Release();
 	ptim = NULL;
 	return S_OK;
-}
-
-HRESULT __stdcall Squirrel::AdviseSink(REFIID riid, IUnknown *punk, DWORD *pdwCookie)
-{
-	lout << "AdviseSink" << endl;
-	langBarItemSink = (ITfLangBarItemSink *) punk;
-	*pdwCookie = 1;
-	return S_OK;
-}
-
-HRESULT __stdcall Squirrel::UnadviseSink(DWORD pdwCookie)
-{
-	lout << "UnadviseSink" << endl;
-	return S_OK;
-}
-
-HRESULT __stdcall Squirrel::GetInfo(TF_LANGBARITEMINFO *pInfo)
-{
-	lout << "GetInfo" << endl;
-	*pInfo = langBarItemInfo;
-	return S_OK;
-}
-
-HRESULT __stdcall Squirrel::GetStatus(DWORD *pdwStatus)
-{
-	lout << "GetStatus" << endl;
-	*pdwStatus = 0;
-	return S_OK;
-}
-
-HRESULT __stdcall Squirrel::GetTooltipString(BSTR *pbstrToolTip)
-{
-	lout << "GetTooltipString" << endl;
-	if (disabled)
-		*pbstrToolTip = SysAllocString(L"Disabled");
-	else if (enabled)
-		*pbstrToolTip = SysAllocString(L"Squirrel");
-	else
-		*pbstrToolTip = SysAllocString(L"English");
-	return S_OK;
-}
-
-HRESULT __stdcall Squirrel::Show(BOOL fShow)
-{
-	lout << "Show" << endl;
-	return E_NOTIMPL;
-}
-
-HRESULT __stdcall Squirrel::GetIcon(HICON *phIcon)
-{
-	lout << "GetIcon" << endl;
-	if (disabled)
-		*phIcon = LoadIcon(NULL, IDI_ERROR);
-	else if (enabled)
-		*phIcon = LoadIcon((HINSTANCE) &__ImageBase, L"ICON");
-	else
-		*phIcon = LoadIcon(NULL, IDI_QUESTION);
-	return S_OK;
-}
-
-HRESULT __stdcall Squirrel::GetText(BSTR *pbstrText)
-{
-	lout << "GetText" << endl;
-	if (disabled)
-		*pbstrText = SysAllocString(L"Disabled");
-	else if (enabled)
-		*pbstrText = SysAllocString(L"Squirrel");
-	else
-		*pbstrText = SysAllocString(L"English");
-	return S_OK;
-}
-
-HRESULT __stdcall Squirrel::InitMenu(ITfMenu *pMenu)
-{
-	lout << "InitMenu" << endl;
-	return E_FAIL;
-}
-
-HRESULT __stdcall Squirrel::OnClick(TfLBIClick click, POINT pt, const RECT *prcArea)
-{
-	lout << "OnClick" << endl;
-	enabled = !enabled;
-	langBarItemSink->OnUpdate(TF_LBI_BTNALL);
-	if (!enabled)
-		disable();
-	return S_OK;
-}
-
-HRESULT __stdcall Squirrel::OnMenuSelect(UINT wID)
-{
-	lout << "OnMenuSelect" << endl;
-	return E_FAIL;
 }
 
 static const map<char, wchar_t> phoneticTable =
@@ -463,7 +391,8 @@ STDMETHODIMP Squirrel::OnKeyUp(ITfContext *pic, WPARAM wParam, LPARAM lParam, BO
 	{
 		*pfEaten = TRUE;
 		enabled = !enabled;
-		langBarItemSink->OnUpdate(TF_LBI_BTNALL);
+		if (langBarItemSink)
+			langBarItemSink->OnUpdate(TF_LBI_BTNALL);
 		if (!enabled)
 			disable();
 		return S_OK;

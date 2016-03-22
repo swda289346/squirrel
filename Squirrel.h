@@ -7,6 +7,7 @@
 #include <msctf.h>
 #include "CandidateWindow.h"
 #include "KeyState.h"
+#include "SquirrelLangBarItemButton.h"
 using namespace std;
 
 #ifdef _DEBUG
@@ -19,7 +20,7 @@ static const GUID guid =
 { 0x7841fdff, 0xfbe7, 0x4d1f, { 0x9e, 0x57, 0xf5, 0x6c, 0xaf, 0x7f, 0x5, 0xa5 } };
 #endif
 
-class Squirrel : IUnknown, ITfTextInputProcessor, ITfSource, ITfLangBarItemButton, ITfKeyEventSink, ITfEditSession, ITfCompositionSink, ITfThreadFocusSink, ITfThreadMgrEventSink
+class Squirrel : IUnknown, ITfTextInputProcessor, ITfKeyEventSink, ITfEditSession, ITfCompositionSink, ITfThreadFocusSink, ITfThreadMgrEventSink
 {
 	public:
 		int count;
@@ -27,7 +28,6 @@ class Squirrel : IUnknown, ITfTextInputProcessor, ITfSource, ITfLangBarItemButto
 		bool disabled;
 		ITfThreadMgr *ptim;
 		TfClientId tid;
-		TF_LANGBARITEMINFO langBarItemInfo;
 		ITfLangBarItemSink *langBarItemSink;
 		ITfContext *pic;
 		wchar_t textToSet;
@@ -35,6 +35,7 @@ class Squirrel : IUnknown, ITfTextInputProcessor, ITfSource, ITfLangBarItemButto
 		CandidateWindow *candidateWindow;
 		map<wstring, vector<wstring>> codeTable;
 		KeyState keyState;
+		SquirrelLangBarItemButton *lbi, *lbiTray;
 		
 		Squirrel();
 		void putChar(ITfContext *pic, wchar_t c);
@@ -48,20 +49,6 @@ class Squirrel : IUnknown, ITfTextInputProcessor, ITfSource, ITfLangBarItemButto
 		
 		STDMETHODIMP Activate(ITfThreadMgr *ptim, TfClientId tid);
 		STDMETHODIMP Deactivate();
-		
-		HRESULT __stdcall AdviseSink(REFIID riid, IUnknown *punk, DWORD *pdwCookie);
-		HRESULT __stdcall UnadviseSink(DWORD pdwCookie);
-		
-		HRESULT __stdcall GetInfo(TF_LANGBARITEMINFO *pInfo);
-		HRESULT __stdcall GetStatus(DWORD *pdwStatus);
-		HRESULT __stdcall GetTooltipString(BSTR *pbstrToolTip);
-		HRESULT __stdcall Show(BOOL fShow);
-		
-		HRESULT __stdcall GetIcon(HICON *phIcon);
-		HRESULT __stdcall GetText(BSTR *pbstrText);
-		HRESULT __stdcall InitMenu(ITfMenu *pMenu);
-		HRESULT __stdcall OnClick(TfLBIClick click, POINT pt, const RECT *prcArea);
-		HRESULT __stdcall OnMenuSelect(UINT wID);
 		
 		STDMETHODIMP OnKeyDown(ITfContext *pic, WPARAM wParam, LPARAM lParam, BOOL *pfEaten);
 		STDMETHODIMP OnKeyUp(ITfContext *pic, WPARAM wParam, LPARAM lParam, BOOL *pfEaten);
