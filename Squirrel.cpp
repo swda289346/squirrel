@@ -437,6 +437,12 @@ STDMETHODIMP Squirrel::OnKeyDown(ITfContext *pic, WPARAM wParam, LPARAM lParam, 
 		putChar(pic, wParam);
 		return S_OK;
 	}
+	if (composition && wParam==VK_BACK)
+	{
+		*pfEaten = TRUE;
+		putChar(pic, wParam);
+		return S_OK;
+	}
 	if (enabled && phoneticTable.count(wParam))
 	{
 		*pfEaten = TRUE;
@@ -498,6 +504,11 @@ STDMETHODIMP Squirrel::OnTestKeyDown(ITfContext *pic, WPARAM wParam, LPARAM lPar
 		return S_OK;
 	}
 	if (candidateWindow && (wParam==38||wParam==40||wParam==13||wParam==VK_BACK||wParam==VK_PRIOR||wParam==VK_NEXT))
+	{
+		*pfEaten = TRUE;
+		return S_OK;
+	}
+	if (composition && wParam==VK_BACK)
 	{
 		*pfEaten = TRUE;
 		return S_OK;
@@ -677,6 +688,8 @@ HRESULT __stdcall Squirrel::DoEditSession(TfEditCookie ec)
 	selection.style.fInterimChar = FALSE;
 	pic->SetSelection(ec, 1, &selection);
 	range->Release();
+	if (combination.isEmpty())
+		completeComposition(ec);
 	if (phoneticCompleteSet.count(textToSet))
 	{
 		ITfContextView *contextView = NULL;

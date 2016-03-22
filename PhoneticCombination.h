@@ -10,6 +10,8 @@ class PhoneticCombination
 		
 		PhoneticCombination(wstring text);
 		void setChar(wchar_t sc);
+		void clearChar();
 		void clearPos(int pos);
 		wstring asString() const;
+		bool isEmpty() const;
 };

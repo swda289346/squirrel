@@ -59,9 +59,24 @@ static const map<wchar_t, int> phoneticTypeTable =
 
 void PhoneticCombination::setChar(wchar_t sc)
 {
+	if (sc==VK_BACK)
+	{
+		clearChar();
+		return;
+	}
 	c[phoneticTypeTable.at(sc)] = (sc!=L' '?sc:0);
 	if (phoneticTypeTable.at(sc)!=4)
 		c[4] = 0;
+}
+
+void PhoneticCombination::clearChar()
+{
+	for (int i=4;i>=1;i--)
+		if (c[i])
+		{
+			c[i] = 0;
+			return;
+		}
 }
 
 void PhoneticCombination::clearPos(int pos)
@@ -77,4 +92,12 @@ wstring PhoneticCombination::asString() const
 			ans += c[i];
 	lout << toString(ans) << endl;
 	return ans;
+}
+
+bool PhoneticCombination::isEmpty() const
+{
+	for (int i=1;i<=4;i++)
+		if (c[i])
+			return false;
+	return true;
 }
