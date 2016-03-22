@@ -9,9 +9,15 @@
 #include "KeyState.h"
 using namespace std;
 
+#ifdef _DEBUG
+// {AA95DE4F-99FA-41CF-844C-57D01901E740}
+static const GUID guid = 
+{ 0xaa95de4f, 0x99fa, 0x41cf, { 0x84, 0x4c, 0x57, 0xd0, 0x19, 0x1, 0xe7, 0x40 } };
+#else
 // {7841FDFF-FBE7-4D1F-9E57-F56CAF7F05A5}
 static const GUID guid = 
 { 0x7841fdff, 0xfbe7, 0x4d1f, { 0x9e, 0x57, 0xf5, 0x6c, 0xaf, 0x7f, 0x5, 0xa5 } };
+#endif
 
 class Squirrel : IUnknown, ITfTextInputProcessor, ITfSource, ITfLangBarItemButton, ITfKeyEventSink, ITfEditSession, ITfCompositionSink, ITfThreadFocusSink, ITfThreadMgrEventSink
 {

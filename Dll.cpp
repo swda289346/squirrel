@@ -3,6 +3,7 @@
 #include <windows.h>
 #include <winreg.h>
 #include <msctf.h>
+#include "Dll.h"
 #include "Squirrel.h"
 #include "SquirrelFactory.h"
 #include "util.h"
@@ -33,7 +34,7 @@ HRESULT DllRegisterServer()
 	// Register COM
 	HKEY key;
 	lout << "Create key \\" << endl;
-	hr = RegCreateKeyEx(HKEY_CLASSES_ROOT, L"CLSID" L"\\{7841FDFF-FBE7-4D1F-9E57-F56CAF7F05A5}", 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &key, NULL);
+	hr = RegCreateKeyEx(HKEY_CLASSES_ROOT, L"CLSID" L"\\" SquirrelGUID, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &key, NULL);
 	if (hr!=ERROR_SUCCESS)
 	{
 		lout << "Fail" << endl;
@@ -95,7 +96,7 @@ HRESULT DllRegisterServer()
 	string path = getSelfPath();
 	wstring_convert<codecvt_utf8_utf16<wchar_t>> converter;
 	wstring wpath = converter.from_bytes(path);
-	hr = profile->AddLanguageProfile(guid, 1028, guid, L"Squirrel", -1, wpath.c_str(), -1, 0);
+	hr = profile->AddLanguageProfile(guid, 1028, guid, SquirrelName, -1, wpath.c_str(), -1, 0);
 	if (hr!=S_OK)
 	{
 		lout << "Fail" << endl;
@@ -154,7 +155,7 @@ HRESULT DllUnregisterServer()
 	
 	// Unregister COM
 	lout << "Delete key \\" << endl;
-	hr = RegDeleteTree(HKEY_CLASSES_ROOT, L"CLSID" L"\\{7841FDFF-FBE7-4D1F-9E57-F56CAF7F05A5}");
+	hr = RegDeleteTree(HKEY_CLASSES_ROOT, L"CLSID" L"\\" SquirrelGUID);
 	if (hr!=ERROR_SUCCESS)
 	{
 		lout << "Fail" << endl;
