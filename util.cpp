@@ -11,7 +11,9 @@ using namespace std;
 int lprintf(const char *fmt, ...)
 {
 #ifdef _DEBUG
-	static FILE *fout = fopen("c:\\squirrel.log", "a");
+	char path[MAX_PATH];
+	ExpandEnvironmentStringsA("%APPDATA%\\squirrel.log", path, MAX_PATH);
+	static FILE *fout = fopen(path, "a");
 	setbuf(fout, NULL);
 	va_list args;
 	va_start(args, fmt);
@@ -24,7 +26,8 @@ int lprintf(const char *fmt, ...)
 }
 
 #ifdef _DEBUG
-ofstream lout("c:\\squirrel.log", ios_base::out|ios_base::app);
+// TODO
+ofstream lout("%APPDATA%\\squirrel.log", ios_base::out|ios_base::app);
 #else
 ostream lout(0);
 #endif
