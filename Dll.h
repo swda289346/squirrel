@@ -1,3 +1,5 @@
+#pragma once
+
 #ifdef _DEBUG
 const wchar_t *SquirrelName = L"Squirrel - Debug";
 #define SquirrelGUID L"{AA95DE4F-99FA-41CF-844C-57D01901E740}"
