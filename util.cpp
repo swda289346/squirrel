@@ -7,12 +7,20 @@
 #include "util.h"
 using namespace std;
 
+#ifdef _DEBUG
+char path[MAX_PATH];
+bool init()
+{
+	ExpandEnvironmentStringsA("%APPDATA%\\squirrel.log", path, MAX_PATH);
+	return true;
+}
+bool isInit = init();
+#endif
+
 // TODO
 int lprintf(const char *fmt, ...)
 {
 #ifdef _DEBUG
-	char path[MAX_PATH];
-	ExpandEnvironmentStringsA("%APPDATA%\\squirrel.log", path, MAX_PATH);
 	static FILE *fout = fopen(path, "a");
 	setbuf(fout, NULL);
 	va_list args;
@@ -27,7 +35,7 @@ int lprintf(const char *fmt, ...)
 
 #ifdef _DEBUG
 // TODO
-ofstream lout("%APPDATA%\\squirrel.log", ios_base::out|ios_base::app);
+ofstream lout(path, ios_base::out|ios_base::app);
 #else
 ostream lout(0);
 #endif
