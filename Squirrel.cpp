@@ -702,9 +702,38 @@ HRESULT __stdcall Squirrel::OnPushContext(ITfContext *pic)
 HRESULT __stdcall Squirrel::OnSetFocus(ITfDocumentMgr *pdimFocus, ITfDocumentMgr *pdimPrevFocus)
 {
 	lout << "OnSetFocus " << pdimFocus << " " << pdimPrevFocus << endl;
-	disabled = !pdimFocus;
+	if (!pdimFocus)
+	{
+		disabled = true;
+		langBarItemSink->OnUpdate(TF_LBI_BTNALL);
+		return S_OK;
+	}
+	
+	HRESULT hr;
+	VARIANT var;
+	ITfContext *context;
+	hr = pdimFocus->GetTop(&context);
+	ITfCompartmentMgr *compartmentMgr = NULL;
+	hr = context->QueryInterface(IID_ITfCompartmentMgr, (void **) &compartmentMgr);
+	lprintf("QueryInterface ITfCompartmentMgr %08x %08x\n", hr, compartmentMgr);
+	ITfCompartment *compartment = NULL;
+	hr = compartmentMgr->GetCompartment(GUID_COMPARTMENT_KEYBOARD_DISABLED, &compartment);
+	lprintf("GetCompartment %08x %08x\n", hr, compartment);
+	hr = compartment->GetValue(&var);
+	lprintf("GetValue %08x\n", hr);
+	context->Release();
+	compartment->Release();
+	compartmentMgr->Release();
+	if (var.vt==VT_I4 && var.lVal)
+	{
+		disabled = true;
+		langBarItemSink->OnUpdate(TF_LBI_BTNALL);
+		return S_OK;
+	}
+	
+	disabled = false;
 	langBarItemSink->OnUpdate(TF_LBI_BTNALL);
-	return E_NOTIMPL;
+	return S_OK;
 }
 
 HRESULT __stdcall Squirrel::OnUninitDocumentMgr(ITfDocumentMgr *pdim)
