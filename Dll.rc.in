@@ -1,0 +1,2 @@
+ICON	ICON	"@PROJECT_BINARY_DIR@/icon.ico"
+TABLE	TEXT	"@PROJECT_SOURCE_DIR@/res/code.txt"
