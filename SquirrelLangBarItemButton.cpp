@@ -3,9 +3,15 @@
 #include "Dll.h"
 #include "util.h"
 
-SquirrelLangBarItemButton::SquirrelLangBarItemButton(Squirrel *parent, GUID type) : count(0), parent(parent), langBarItemInfo{guid, type, TF_LBI_STYLE_BTN_BUTTON|TF_LBI_STYLE_SHOWNINTRAY, 0, SquirrelName}
+SquirrelLangBarItemButton::SquirrelLangBarItemButton(Squirrel *parent, GUID type) : count(0), parent(parent), langBarItemInfo{guid, type, TF_LBI_STYLE_BTN_BUTTON|TF_LBI_STYLE_SHOWNINTRAY, 0, SquirrelName}, langBarItemSink(NULL)
 {
-	
+	AddRef();
+}
+
+SquirrelLangBarItemButton::~SquirrelLangBarItemButton()
+{
+	if (langBarItemSink)
+		langBarItemSink->Release();
 }
 
 bool SquirrelLangBarItemButton::isDisabled() const
@@ -15,12 +21,19 @@ bool SquirrelLangBarItemButton::isDisabled() const
 
 void SquirrelLangBarItemButton::switchEnabled()
 {
-	parent->enabled = !parent->enabled;
+	if (!isDisabled())
+		parent->enabled = !parent->enabled;
 }
 
 bool SquirrelLangBarItemButton::isEnabled() const
 {
 	return parent->enabled;
+}
+
+void SquirrelLangBarItemButton::update()
+{
+	if (langBarItemSink)
+		langBarItemSink->OnUpdate(TF_LBI_BTNALL);
 }
 
 HRESULT __stdcall SquirrelLangBarItemButton::QueryInterface(REFIID iid, void **ret)
@@ -63,7 +76,9 @@ ULONG __stdcall SquirrelLangBarItemButton::Release()
 HRESULT __stdcall SquirrelLangBarItemButton::AdviseSink(REFIID riid, IUnknown *punk, DWORD *pdwCookie)
 {
 	lout << "AdviseSink" << endl;
-	parent->langBarItemSink = langBarItemSink = (ITfLangBarItemSink *) punk;
+	if (langBarItemSink)
+		return E_FAIL;
+	punk->QueryInterface(IID_ITfLangBarItemSink, (void **) &langBarItemSink);
 	*pdwCookie = 1;
 	return S_OK;
 }
@@ -71,6 +86,10 @@ HRESULT __stdcall SquirrelLangBarItemButton::AdviseSink(REFIID riid, IUnknown *p
 HRESULT __stdcall SquirrelLangBarItemButton::UnadviseSink(DWORD pdwCookie)
 {
 	lout << "UnadviseSink" << endl;
+	if (pdwCookie!=1||!langBarItemSink)
+		return E_FAIL;
+	langBarItemSink->Release();
+	langBarItemSink = NULL;
 	return S_OK;
 }
 
@@ -85,6 +104,9 @@ HRESULT __stdcall SquirrelLangBarItemButton::GetStatus(DWORD *pdwStatus)
 {
 	lout << "GetStatus" << endl;
 	*pdwStatus = 0;
+	// TODO
+//	if (isDisabled())
+//		*pdwStatus |= TF_LBI_STATUS_DISABLED;
 	return S_OK;
 }
 
@@ -140,7 +162,7 @@ HRESULT __stdcall SquirrelLangBarItemButton::OnClick(TfLBIClick click, POINT pt,
 {
 	lout << "OnClick" << endl;
 	switchEnabled();
-	langBarItemSink->OnUpdate(TF_LBI_BTNALL);
+	update();
 	if (!isEnabled())
 		parent->disable();
 	return S_OK;

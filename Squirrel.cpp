@@ -63,11 +63,9 @@ Squirrel::Squirrel() : count(0), enabled(false), composition(NULL), candidateWin
 		}
 		needNext = false;
 	}
-	langBarItemSink = NULL;
-	lbi = new SquirrelLangBarItemButton(this, GUID_LBI_BUTTON);
-	lbi->AddRef();
-	lbiTray = new SquirrelLangBarItemButton(this, GUID_LBI_INPUTMODE);
-	lbiTray->AddRef();
+	langBarItemButton.push_back(new SquirrelLangBarItemButton(this, GUID_LBI_BUTTON));
+	if (IsWindows8OrGreater())
+		langBarItemButton.push_back(new SquirrelLangBarItemButton(this, GUID_LBI_INPUTMODE));
 }
 
 void Squirrel::putChar(ITfContext *pic, wchar_t c)
@@ -115,6 +113,12 @@ void Squirrel::completeComposition(TfEditCookie ec)
 		delete candidateWindow;
 		candidateWindow = NULL;
 	}
+}
+
+void Squirrel::updateLangBarItem()
+{
+	for (SquirrelLangBarItemButton *button:langBarItemButton)
+		button->update();
 }
 
 HRESULT __stdcall Squirrel::QueryInterface(REFIID iid, void **ret)
@@ -197,17 +201,10 @@ STDMETHODIMP Squirrel::Activate(ITfThreadMgr *ptim, TfClientId tid)
 	hr = ptim->QueryInterface(IID_ITfLangBarItemMgr, (void **) &langBarItemMgr);
 	if (hr!=S_OK)
 		lprintf("Fail %08x\n", hr);
-	ITfLangBarItemButton *t = NULL;
-	lbi->QueryInterface(IID_ITfLangBarItemButton, (void **) &t);
-	hr = langBarItemMgr->AddItem((ITfLangBarItem *) t);
-	t->Release();
-	if (hr!=S_OK)
-		lprintf("AddItem fail %08x\n", hr);
-	if (IsWindows8OrGreater())
+	for (SquirrelLangBarItemButton *button:langBarItemButton)
 	{
-		lbiTray->QueryInterface(IID_ITfLangBarItemButton, (void **) &t);
+		ITfLangBarItemButton *t = (ITfLangBarItemButton *) button;
 		hr = langBarItemMgr->AddItem((ITfLangBarItem *) t);
-		t->Release();
 		if (hr!=S_OK)
 			lprintf("AddItem fail %08x\n", hr);
 	}
@@ -242,19 +239,12 @@ STDMETHODIMP Squirrel::Deactivate()
 	hr = ptim->QueryInterface(IID_ITfLangBarItemMgr, (void **) &langBarItemMgr);
 	if (hr!=S_OK)
 		lprintf("Fail %08x\n", hr);
-	ITfLangBarItemButton *t = NULL;
-	lbi->QueryInterface(IID_ITfLangBarItemButton, (void **) &t);
-	hr = langBarItemMgr->RemoveItem((ITfLangBarItem *) t);
-	t->Release();
-	if (hr!=S_OK)
-		lprintf("Fail %08x\n", hr);
-	if (IsWindows8OrGreater())
+	for (SquirrelLangBarItemButton *button:langBarItemButton)
 	{
-		lbiTray->QueryInterface(IID_ITfLangBarItemButton, (void **) &t);
+		ITfLangBarItemButton *t = (ITfLangBarItemButton *) button;
 		hr = langBarItemMgr->RemoveItem((ITfLangBarItem *) t);
-		t->Release();
 		if (hr!=S_OK)
-			lprintf("Fail %08x\n", hr);
+			lprintf("RemoveItem fail %08x\n", hr);
 	}
 	langBarItemMgr->Release();
 	ptim->Release();
@@ -401,8 +391,7 @@ STDMETHODIMP Squirrel::OnKeyUp(ITfContext *pic, WPARAM wParam, LPARAM lParam, BO
 	{
 		*pfEaten = TRUE;
 		enabled = !enabled;
-		if (langBarItemSink)
-			langBarItemSink->OnUpdate(TF_LBI_BTNALL);
+		updateLangBarItem();
 		if (!enabled)
 			disable();
 		return S_OK;
@@ -725,7 +714,7 @@ HRESULT __stdcall Squirrel::OnSetFocus(ITfDocumentMgr *pdimFocus, ITfDocumentMgr
 	if (!pdimFocus)
 	{
 		disabled = true;
-		langBarItemSink->OnUpdate(TF_LBI_BTNALL);
+		updateLangBarItem();
 		return S_OK;
 	}
 	
@@ -747,12 +736,12 @@ HRESULT __stdcall Squirrel::OnSetFocus(ITfDocumentMgr *pdimFocus, ITfDocumentMgr
 	if (var.vt==VT_I4 && var.lVal)
 	{
 		disabled = true;
-		langBarItemSink->OnUpdate(TF_LBI_BTNALL);
+		updateLangBarItem();
 		return S_OK;
 	}
 	
 	disabled = false;
-	langBarItemSink->OnUpdate(TF_LBI_BTNALL);
+	updateLangBarItem();
 	return S_OK;
 }
 

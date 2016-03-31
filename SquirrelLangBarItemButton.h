@@ -13,9 +13,11 @@ class SquirrelLangBarItemButton : IUnknown, ITfSource, ITfLangBarItemButton
 		ITfLangBarItemSink *langBarItemSink;
 		
 		SquirrelLangBarItemButton(Squirrel *parent, GUID type);
+		~SquirrelLangBarItemButton();
 		bool isDisabled() const;
 		void switchEnabled();
 		bool isEnabled() const;
+		void update();
 		
 		HRESULT __stdcall QueryInterface(REFIID iid, void **ret);
 		ULONG __stdcall AddRef();

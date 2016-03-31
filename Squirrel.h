@@ -28,20 +28,20 @@ class Squirrel : IUnknown, ITfTextInputProcessor, ITfKeyEventSink, ITfEditSessio
 		bool disabled;
 		ITfThreadMgr *ptim;
 		TfClientId tid;
-		ITfLangBarItemSink *langBarItemSink;
 		ITfContext *pic;
 		wchar_t textToSet;
 		ITfComposition *composition;
 		CandidateWindow *candidateWindow;
 		map<wstring, vector<wstring>> codeTable;
 		KeyState keyState;
-		SquirrelLangBarItemButton *lbi, *lbiTray;
+		vector<SquirrelLangBarItemButton *> langBarItemButton;
 		
 		Squirrel();
 		void putChar(ITfContext *pic, wchar_t c);
 		void putCharToComposition(wchar_t c);
 		void disable();
 		void completeComposition(TfEditCookie ec);
+		void updateLangBarItem();
 		
 		HRESULT __stdcall QueryInterface(REFIID iid, void **ret);
 		ULONG __stdcall AddRef();
