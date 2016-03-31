@@ -342,6 +342,11 @@ static bool isPunctuation(wchar_t c)
 STDMETHODIMP Squirrel::OnKeyDown(ITfContext *pic, WPARAM wParam, LPARAM lParam, BOOL *pfEaten)
 {
 	lout << "OnKeyDown" << endl;
+	if (disabled)
+	{
+		*pfEaten = FALSE;
+		return S_OK;
+	}
 	if (enabled && keyState.isCombinedKey(wchar_t(wParam)) && keyState.isOnlyShift() && PunctuationTable.count(wParam) && composition==NULL)
 	{
 		*pfEaten = TRUE;
@@ -385,6 +390,11 @@ STDMETHODIMP Squirrel::OnKeyDown(ITfContext *pic, WPARAM wParam, LPARAM lParam, 
 STDMETHODIMP Squirrel::OnKeyUp(ITfContext *pic, WPARAM wParam, LPARAM lParam, BOOL *pfEaten)
 {
 	lout << "OnKeyUp" << endl;
+	if (disabled)
+	{
+		*pfEaten = FALSE;
+		return S_OK;
+	}
 	bool isCombinedKey = keyState.isCombinedKey(wchar_t(wParam));
 	keyState.releaseKey(wchar_t(wParam));
 	if (wParam==16 && !isCombinedKey)
@@ -416,6 +426,11 @@ STDMETHODIMP Squirrel::OnSetFocus(BOOL fForeground)
 STDMETHODIMP Squirrel::OnTestKeyDown(ITfContext *pic, WPARAM wParam, LPARAM lParam, BOOL *pfEaten)
 {
 	lout << "OnTestKeyDown" << endl;
+	if (disabled)
+	{
+		*pfEaten = FALSE;
+		return S_OK;
+	}
 	keyState.setKey(wchar_t(wParam));
 	if (enabled && keyState.isCombinedKey(wchar_t(wParam)) && keyState.isOnlyShift() && PunctuationTable.count(wParam) && composition==NULL)
 	{
@@ -458,6 +473,11 @@ STDMETHODIMP Squirrel::OnTestKeyDown(ITfContext *pic, WPARAM wParam, LPARAM lPar
 STDMETHODIMP Squirrel::OnTestKeyUp(ITfContext *pic, WPARAM wParam, LPARAM lParam, BOOL *pfEaten)
 {
 	lout << "OnTestKeyUp" << endl;
+	if (disabled)
+	{
+		*pfEaten = FALSE;
+		return S_OK;
+	}
 	if (wParam==16 && !keyState.isCombinedKey(wchar_t(wParam)))
 	{
 		*pfEaten = TRUE;
