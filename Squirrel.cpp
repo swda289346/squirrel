@@ -213,8 +213,8 @@ STDMETHODIMP Squirrel::Activate(ITfThreadMgr *ptim, TfClientId tid)
 	ITfSource *source;
 	ptim->QueryInterface(IID_ITfSource, (void **) &source);
 	DWORD tmp;
-	source->AdviseSink(IID_ITfThreadFocusSink, this, &tmp);
-	source->AdviseSink(IID_ITfThreadMgrEventSink, this, &tmp);
+	source->AdviseSink(IID_ITfThreadFocusSink, this, &threadFocusSinkCookie);
+	source->AdviseSink(IID_ITfThreadMgrEventSink, this, &threadMgrEventSinkCookie);
 	source->Release();
 	disabled = false;
 	lout << "Activate done" << endl;
@@ -247,6 +247,11 @@ STDMETHODIMP Squirrel::Deactivate()
 			lprintf("RemoveItem fail %08x\n", hr);
 	}
 	langBarItemMgr->Release();
+	ITfSource *source;
+	ptim->QueryInterface(IID_ITfSource, (void **) &source);
+	source->UnadviseSink(threadFocusSinkCookie);
+	source->UnadviseSink(threadMgrEventSinkCookie);
+	source->Release();
 	ptim->Release();
 	ptim = NULL;
 	return S_OK;

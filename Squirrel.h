@@ -35,6 +35,7 @@ class Squirrel : IUnknown, ITfTextInputProcessor, ITfKeyEventSink, ITfEditSessio
 		map<wstring, vector<wstring>> codeTable;
 		KeyState keyState;
 		vector<SquirrelLangBarItemButton *> langBarItemButton;
+		DWORD threadFocusSinkCookie, threadMgrEventSinkCookie;
 		
 		Squirrel();
 		void putChar(ITfContext *pic, wchar_t c);
