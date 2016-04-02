@@ -549,6 +549,7 @@ HRESULT __stdcall Squirrel::DoEditSession(TfEditCookie ec)
 		ITfRange *range = NULL;
 		hr = insertAtSelection->InsertTextAtSelection(ec, TF_IAS_QUERYONLY, NULL, 0, &range);
 		lprintf("InsertTextAtSelection %08x %08x\n", hr, range);
+		range->SetText(ec, 0, NULL, 0);
 		insertAtSelection->Release();
 		hr = contextComposition->StartComposition(ec, range, (ITfCompositionSink *) this, &composition);
 		lprintf("StartComposition %08x\n", hr);
