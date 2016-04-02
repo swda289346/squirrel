@@ -224,6 +224,10 @@ STDMETHODIMP Squirrel::Activate(ITfThreadMgr *ptim, TfClientId tid)
 	source->AdviseSink(IID_ITfKeyTraceEventSink, this, &keyTraceEventSinkCookie);
 	source->Release();
 	disabled = false;
+	ITfDocumentMgr *pdim;
+	ptim->GetFocus(&pdim);
+	OnSetFocus(pdim, NULL);
+	pdim->Release();
 	lout << "Activate done" << endl;
 	return S_OK;
 }
