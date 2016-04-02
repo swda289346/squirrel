@@ -84,3 +84,8 @@ bool KeyState::isOnlyShift() const
 {
 	return superKeyCount==1&&isShift();
 }
+
+bool KeyState::isSuperKey(wchar_t c)
+{
+	return SuperKey.count(c);
+}

@@ -141,6 +141,12 @@ HRESULT __stdcall Squirrel::QueryInterface(REFIID iid, void **ret)
 		*ret = (ITfKeyEventSink *) this;
 		return S_OK;
 	}
+	if (iid==IID_ITfKeyTraceEventSink)
+	{
+		this->AddRef();
+		*ret = (ITfKeyTraceEventSink *) this;
+		return S_OK;
+	}
 	if (iid==IID_ITfEditSession)
 	{
 		this->AddRef();
@@ -215,6 +221,7 @@ STDMETHODIMP Squirrel::Activate(ITfThreadMgr *ptim, TfClientId tid)
 	DWORD tmp;
 	source->AdviseSink(IID_ITfThreadFocusSink, this, &threadFocusSinkCookie);
 	source->AdviseSink(IID_ITfThreadMgrEventSink, this, &threadMgrEventSinkCookie);
+	source->AdviseSink(IID_ITfKeyTraceEventSink, this, &keyTraceEventSinkCookie);
 	source->Release();
 	disabled = false;
 	lout << "Activate done" << endl;
@@ -251,6 +258,7 @@ STDMETHODIMP Squirrel::Deactivate()
 	ptim->QueryInterface(IID_ITfSource, (void **) &source);
 	source->UnadviseSink(threadFocusSinkCookie);
 	source->UnadviseSink(threadMgrEventSinkCookie);
+	source->UnadviseSink(keyTraceEventSinkCookie);
 	source->Release();
 	ptim->Release();
 	ptim = NULL;
@@ -479,6 +487,22 @@ STDMETHODIMP Squirrel::OnTestKeyUp(ITfContext *pic, WPARAM wParam, LPARAM lParam
 	}
 	keyState.releaseKey(wchar_t(wParam));
 	*pfEaten = FALSE;
+	return S_OK;
+}
+
+STDMETHODIMP Squirrel::OnKeyTraceDown(WPARAM wParam, LPARAM lParam)
+{
+	lout << "OnKeyTraceDown" << endl;
+	if (disabled && KeyState::isSuperKey(wchar_t(wParam)))
+		keyState.setKey(wchar_t(wParam));
+	return S_OK;
+}
+
+STDMETHODIMP Squirrel::OnKeyTraceUp(WPARAM wParam, LPARAM lParam)
+{
+	lout << "OnKeyTraceUp" << endl;
+	if (disabled && KeyState::isSuperKey(wchar_t(wParam)))
+		keyState.releaseKey(wchar_t(wParam));
 	return S_OK;
 }
 

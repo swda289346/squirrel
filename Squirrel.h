@@ -20,7 +20,7 @@ static const GUID guid =
 { 0x7841fdff, 0xfbe7, 0x4d1f, { 0x9e, 0x57, 0xf5, 0x6c, 0xaf, 0x7f, 0x5, 0xa5 } };
 #endif
 
-class Squirrel : IUnknown, ITfTextInputProcessor, ITfKeyEventSink, ITfEditSession, ITfCompositionSink, ITfThreadFocusSink, ITfThreadMgrEventSink
+class Squirrel : IUnknown, ITfTextInputProcessor, ITfKeyEventSink, ITfKeyTraceEventSink, ITfEditSession, ITfCompositionSink, ITfThreadFocusSink, ITfThreadMgrEventSink
 {
 	public:
 		int count;
@@ -35,7 +35,7 @@ class Squirrel : IUnknown, ITfTextInputProcessor, ITfKeyEventSink, ITfEditSessio
 		map<wstring, vector<wstring>> codeTable;
 		KeyState keyState;
 		vector<SquirrelLangBarItemButton *> langBarItemButton;
-		DWORD threadFocusSinkCookie, threadMgrEventSinkCookie;
+		DWORD threadFocusSinkCookie, threadMgrEventSinkCookie, keyTraceEventSinkCookie;
 		
 		Squirrel();
 		void putChar(ITfContext *pic, wchar_t c);
@@ -57,6 +57,9 @@ class Squirrel : IUnknown, ITfTextInputProcessor, ITfKeyEventSink, ITfEditSessio
 		STDMETHODIMP OnSetFocus(BOOL fForeground);
 		STDMETHODIMP OnTestKeyDown(ITfContext *pic, WPARAM wParam, LPARAM lParam, BOOL *pfEaten);
 		STDMETHODIMP OnTestKeyUp(ITfContext *pic, WPARAM wParam, LPARAM lParam, BOOL *pfEaten);
+		
+		STDMETHODIMP OnKeyTraceDown(WPARAM wParam, LPARAM lParam);
+		STDMETHODIMP OnKeyTraceUp(WPARAM wParam, LPARAM lParam);
 		
 		HRESULT __stdcall DoEditSession(TfEditCookie ec);
 		
