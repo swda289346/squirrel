@@ -1,29 +1,52 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-	<Product Id="*" Language="1028" Manufacturer="swda289346" Name="Squirrel" UpgradeCode="{E8755EE2-DD68-44EF-BAB2-7CE3A22AB782}" Version="0.0.0.0">
-		<Package InstallerVersion="200" Platform="x64"/>
+<?ifndef BuildFolder?>
+	<?define BuildFolder = build?>
+<?endif?>
+<?ifndef Build64Folder?>
+	<?define Build64Folder = build64?>
+<?endif?>
+<?ifndef Platform?>
+	<?define Platform = x64?>
+<?endif?>
+<?ifndef Version?>
+	<?define Version = 0.0.0?>
+<?endif?>
+	<Product Id="*" Language="1028" Manufacturer="swda289346" Name="Squirrel" UpgradeCode="{E8755EE2-DD68-44EF-BAB2-7CE3A22AB782}" Version="$(var.Version)">
+		<Package InstallerVersion="200" Platform="$(var.Platform)" />
+<?if $(var.Platform) = x86?>
+		<Condition Message="Please install 64 bit version.">
+			Not VersionNT64
+		</Condition>
+<?endif?>
 		<Media Id="1" Cabinet="Squirrel.cab" EmbedCab="yes" />
 		<Directory Id="TARGETDIR" Name="SourceDir">
 			<Directory Id="ProgramFilesFolder">
 				<Directory Id="SQUIRREL" Name="Squirrel" />
 			</Directory>
+<?if $(var.Platform) = x64?>
 			<Directory Id="ProgramFiles64Folder">
 				<Directory Id="SQUIRREL64" Name="Squirrel" />
 			</Directory>
+<?endif?>
 		</Directory>
 		<DirectoryRef Id="SQUIRREL">
 			<Component Id="Squirrel.x86.dll" Guid="{13B5ABE3-9F91-4A94-90CB-CD2ACA879189}">
-				<File Id="Squirrel.x86.dll" Source="$(var.build)\Release\Squirrel.dll" SelfRegCost="1" Compressed="yes" />
+				<File Id="Squirrel.x86.dll" Source="$(var.BuildFolder)\Release\Squirrel.dll" SelfRegCost="1" Compressed="yes" />
 			</Component>
 		</DirectoryRef>
+<?if $(var.Platform) = x64?>
 		<DirectoryRef Id="SQUIRREL64">
 			<Component Id="Squirrel.x64.dll" Guid="{43CBF1A8-B52D-4910-82CD-1589A61580CF}" Win64="yes">
-				<File Id="Squirrel.x64.dll" Source="$(var.build64)\Release\Squirrel.dll" SelfRegCost="1" Compressed="yes" />
+				<File Id="Squirrel.x64.dll" Source="$(var.Build64Folder)\Release\Squirrel.dll" SelfRegCost="1" Compressed="yes" />
 			</Component>
 		</DirectoryRef>
+<?endif?>
 		<Feature Id="Squirrel" Title="Squirrel" Level="1">
 			<ComponentRef Id="Squirrel.x86.dll" />
+<?if $(var.Platform) = x64?>
 			<ComponentRef Id="Squirrel.x64.dll" />
+<?endif?>
 		</Feature>
 	</Product>
 </Wix>
