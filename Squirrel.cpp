@@ -365,6 +365,11 @@ STDMETHODIMP Squirrel::OnKeyDown(ITfContext *pic, WPARAM wParam, LPARAM lParam, 
 		*pfEaten = FALSE;
 		return S_OK;
 	}
+	if (composition==NULL && wParam==' ')
+	{
+		*pfEaten = FALSE;
+		return S_OK;
+	}
 	if (enabled && wParam==27)
 	{
 		putChar(pic, wchar_t(wParam));
