@@ -18,5 +18,6 @@ class KeyState
 		bool isCombinedKey(wchar_t c) const;
 		bool isShift() const;
 		bool isOnlyShift() const;
+		int getSuperKeyCount() const;
 		static bool isSuperKey(wchar_t c);
 };

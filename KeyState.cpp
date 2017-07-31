@@ -1,4 +1,5 @@
 #include <windows.h>
+#include <winuser.h>
 #include "KeyState.h"
 #include "util.h"
 
@@ -56,7 +57,7 @@ bool KeyState::isCombinedKey(wchar_t c) const
 	bool ans;
 	if (SuperKey.count(c))
 	{
-		if (superKeyCount>1)
+		if (getSuperKeyCount()>1)
 			ans = true;
 		else if (lastSuperKey.at(c)+1==count)
 			ans = false;
@@ -65,24 +66,38 @@ bool KeyState::isCombinedKey(wchar_t c) const
 	}
 	else
 	{
-		if (superKeyCount)
+		if (getSuperKeyCount())
 			ans = true;
 		else
 			ans = false;
 	}
 	lout << "KeyState::isCombinedKey " << int(c) << " " << ans << endl;
-	lout << "KeyState::isCombinedKey superKeyCount = " << superKeyCount << endl;
+	lout << "KeyState::isCombinedKey superKeyCount = " << getSuperKeyCount() << endl;
 	return ans;
 }
 
 bool KeyState::isShift() const
 {
-	return lastSuperKey.at(VK_SHIFT)!=-1;
+	return GetKeyState(VK_SHIFT)>>15;
 }
 
 bool KeyState::isOnlyShift() const
 {
-	return superKeyCount==1&&isShift();
+	return getSuperKeyCount()==1&&isShift();
+}
+
+int KeyState::getSuperKeyCount() const
+{
+	BYTE tmp[256];
+	int count = 0;
+	GetKeyboardState(tmp);
+	if (tmp[VK_SHIFT]>>7)
+		count++;
+	if (tmp[VK_CONTROL]>>7)
+		count++;
+	if (tmp[VK_MENU]>>7)
+		count++;
+	return count;
 }
 
 bool KeyState::isSuperKey(wchar_t c)
