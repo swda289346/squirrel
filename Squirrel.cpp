@@ -346,6 +346,28 @@ static bool isPunctuation(wchar_t c)
 	return false;
 }
 
+static const map<char, wchar_t> SelectTable =
+{
+	{'1', '1'},
+	{'2', '2'},
+	{'3', '3'},
+	{'4', '4'},
+	{'5', '5'},
+	{'6', '6'},
+	{'7', '7'},
+	{'8', '8'},
+	{'9', '9'},
+	{VK_NUMPAD1, '1'},
+	{VK_NUMPAD2, '2'},
+	{VK_NUMPAD3, '3'},
+	{VK_NUMPAD4, '4'},
+	{VK_NUMPAD5, '5'},
+	{VK_NUMPAD6, '6'},
+	{VK_NUMPAD7, '7'},
+	{VK_NUMPAD8, '8'},
+	{VK_NUMPAD9, '9'},
+};
+
 STDMETHODIMP Squirrel::OnKeyDown(ITfContext *pic, WPARAM wParam, LPARAM lParam, BOOL *pfEaten)
 {
 	lout << "OnKeyDown" << endl;
@@ -376,10 +398,21 @@ STDMETHODIMP Squirrel::OnKeyDown(ITfContext *pic, WPARAM wParam, LPARAM lParam, 
 		*pfEaten = FALSE;
 		return S_OK;
 	}
-	if (candidateWindow && (wParam==38||wParam==40||wParam==13||wParam==VK_BACK||wParam==VK_PRIOR||wParam==VK_NEXT))
+	if (candidateWindow && (wParam==38||wParam==40||wParam==13||wParam==' '||wParam==VK_BACK||wParam==VK_PRIOR||wParam==VK_NEXT))
 	{
 		*pfEaten = TRUE;
 		putChar(pic, wParam);
+		return S_OK;
+	}
+	if (candidateWindow && SelectTable.count(wParam))
+	{
+		*pfEaten = TRUE;
+		putChar(pic, SelectTable.at(wParam));
+		return S_OK;
+	}
+	if (candidateWindow)
+	{
+		*pfEaten = TRUE;
 		return S_OK;
 	}
 	if (composition && wParam==VK_BACK)
@@ -458,7 +491,17 @@ STDMETHODIMP Squirrel::OnTestKeyDown(ITfContext *pic, WPARAM wParam, LPARAM lPar
 		*pfEaten = FALSE;
 		return S_OK;
 	}
-	if (candidateWindow && (wParam==38||wParam==40||wParam==13||wParam==VK_BACK||wParam==VK_PRIOR||wParam==VK_NEXT))
+	if (candidateWindow && (wParam==38||wParam==40||wParam==13||wParam==' '||wParam==VK_BACK||wParam==VK_PRIOR||wParam==VK_NEXT))
+	{
+		*pfEaten = TRUE;
+		return S_OK;
+	}
+	if (candidateWindow && SelectTable.count(wParam))
+	{
+		*pfEaten = TRUE;
+		return S_OK;
+	}
+	if (candidateWindow)
 	{
 		*pfEaten = TRUE;
 		return S_OK;
@@ -604,19 +647,7 @@ HRESULT __stdcall Squirrel::DoEditSession(TfEditCookie ec)
 			candidateWindow = NULL;
 			return S_OK;
 		}
-		static const map<wchar_t, int> selectTable =
-		{
-			{L'£t', 0},
-			{L'£x', 1},
-			{L'£¾', 2},
-			{L'£¿', 3},
-			{L'£¤', 4},
-			{L'£½', 5},
-			{L'£»', 6},
-			{L'£«', 7},
-			{L'£¯', 8},
-		};
-		wstring textString = textToSet==13?candidateWindow->getCandidate():candidateWindow->getCandidate(selectTable.at(textToSet));
+		wstring textString = textToSet==13?candidateWindow->getCandidate():candidateWindow->getCandidate(textToSet-'1');
 		ITfRange *range = NULL;
 		hr = composition->GetRange(&range);
 		range->SetText(ec, 0, textString.c_str(), textString.size());
