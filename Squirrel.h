@@ -38,6 +38,7 @@ class Squirrel : IUnknown, ITfTextInputProcessor, ITfKeyEventSink, ITfKeyTraceEv
 		DWORD threadFocusSinkCookie, threadMgrEventSinkCookie, keyTraceEventSinkCookie;
 		
 		Squirrel();
+		~Squirrel();
 		void putChar(ITfContext *pic, wchar_t c);
 		void putCharToComposition(wchar_t c);
 		void disable();

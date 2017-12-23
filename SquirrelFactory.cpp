@@ -1,9 +1,12 @@
+#include "Dll.h"
 #include "SquirrelFactory.h"
 #include "Squirrel.h"
+#include "util.h"
 
 SquirrelFactory::SquirrelFactory() : count(0)
 {
-	
+	objectCounter++;
+	lout << "Create SquirrelFactory" << endl;
 }
 
 HRESULT __stdcall SquirrelFactory::QueryInterface(REFIID iid, void **ret)
@@ -33,7 +36,11 @@ ULONG __stdcall SquirrelFactory::Release()
 {
 	count--;
 	if (count==0)
+	{
+		objectCounter--;
+		lout << "Delete SquirrelFactory" << endl;
 		delete this;
+	}
 	return count;
 }
 

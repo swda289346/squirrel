@@ -5,6 +5,8 @@
 
 SquirrelLangBarItemButton::SquirrelLangBarItemButton(Squirrel *parent, GUID type) : count(0), parent(parent), langBarItemInfo{guid, type, TF_LBI_STYLE_BTN_BUTTON|TF_LBI_STYLE_SHOWNINTRAY, 0, SquirrelName}, langBarItemSink(NULL)
 {
+	objectCounter++;
+	lout << "Create SquirrelLangBarItemButton" << endl;
 	AddRef();
 }
 
@@ -69,7 +71,11 @@ ULONG __stdcall SquirrelLangBarItemButton::Release()
 {
 	count--;
 	if (count==0)
+	{
+		objectCounter--;
+		lout << "Delete SquirrelLangBarItemButton" << endl;
 		delete this;
+	}
 	return count;
 }
 

@@ -5,6 +5,7 @@
 #include <string>
 #include <windows.h>
 #include <VersionHelpers.h>
+#include "Dll.h"
 #include "Squirrel.h"
 #include "util.h"
 #include "PhoneticCombination.h"
@@ -35,6 +36,9 @@ string loadTable()
 
 Squirrel::Squirrel() : count(0), enabled(false), composition(NULL), candidateWindow(NULL)
 {
+	objectCounter++;
+	lout << "Create Squirrel" << endl;
+	
 	string s = loadTable();
 	wstring ws = fromString(s);
 	wistringstream iss(ws);
@@ -66,6 +70,12 @@ Squirrel::Squirrel() : count(0), enabled(false), composition(NULL), candidateWin
 	langBarItemButton.push_back(new SquirrelLangBarItemButton(this, GUID_LBI_BUTTON));
 	if (IsWindows8OrGreater())
 		langBarItemButton.push_back(new SquirrelLangBarItemButton(this, GUID_LBI_INPUTMODE));
+}
+
+Squirrel::~Squirrel()
+{
+	for (auto b:langBarItemButton)
+		b->Release();
 }
 
 void Squirrel::putChar(ITfContext *pic, wchar_t c)
@@ -182,9 +192,14 @@ ULONG __stdcall Squirrel::AddRef()
 
 ULONG __stdcall Squirrel::Release()
 {
+	lout << "Squirrel::Release count=" << count << "->" << count-1 << endl;
 	count--;
 	if (count==0)
+	{
+		objectCounter--;
+		lout << "Delete Squirrel" << endl;
 		delete this;
+	}
 	return count;
 }
 

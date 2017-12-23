@@ -9,6 +9,8 @@
 #include "util.h"
 using namespace std;
 
+atomic<int> objectCounter = 0;
+
 STDAPI DllGetClassObject(const CLSID &clsid, const IID &iid, void **ret)
 {
 	if (clsid==guid)
@@ -23,7 +25,10 @@ STDAPI DllGetClassObject(const CLSID &clsid, const IID &iid, void **ret)
 
 STDAPI DllCanUnloadNow()
 {
-	return S_OK;
+	lout << "DLLCanUnloadNow: objectCounter=" << objectCounter << endl;
+	if (objectCounter==0)
+		return S_OK;
+	return E_FAIL;
 }
 
 HRESULT DllRegisterServer()
