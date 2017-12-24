@@ -142,7 +142,7 @@ HRESULT __stdcall SquirrelLangBarItemButton::GetIcon(HICON *phIcon)
 	else if (isEnabled())
 		*phIcon = LoadIcon((HINSTANCE) &__ImageBase, L"ICON");
 	else
-		*phIcon = LoadIcon(NULL, IDI_QUESTION);
+		*phIcon = LoadIcon((HINSTANCE) &__ImageBase, L"ICON_EN");
 	return S_OK;
 }
 
