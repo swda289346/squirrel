@@ -242,7 +242,8 @@ STDMETHODIMP Squirrel::Activate(ITfThreadMgr *ptim, TfClientId tid)
 	ITfDocumentMgr *pdim;
 	ptim->GetFocus(&pdim);
 	OnSetFocus(pdim, NULL);
-	pdim->Release();
+	if (pdim)
+		pdim->Release();
 	lout << "Activate done" << endl;
 	return S_OK;
 }
