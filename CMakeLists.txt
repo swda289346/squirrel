@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 3.3.0)
 project(Squirrel)
 add_custom_command(
 	OUTPUT ${PROJECT_BINARY_DIR}/icon.ico
-	COMMAND ${IMAGEMAGICK_PATH}magick convert ${PROJECT_SOURCE_DIR}/res/icon.svg ${PROJECT_BINARY_DIR}/icon.ico
-	DEPENDS ${PROJECT_SOURCE_DIR}/res/icon.svg
+	COMMAND ${IMAGEMAGICK_PATH}magick convert ${PROJECT_SOURCE_DIR}/icon.svg ${PROJECT_BINARY_DIR}/icon.ico
+	DEPENDS ${PROJECT_SOURCE_DIR}/icon.svg
 )
 add_custom_command(
 	OUTPUT ${PROJECT_BINARY_DIR}/icon-en.ico
