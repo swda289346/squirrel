@@ -131,6 +131,7 @@ HRESULT __stdcall SquirrelLangBarItemButton::GetTooltipString(BSTR *pbstrToolTip
 HRESULT __stdcall SquirrelLangBarItemButton::Show(BOOL fShow)
 {
 	lout << "Show" << endl;
+	lout << "E_NOTIMPL" << endl;
 	return E_NOTIMPL;
 }
 
@@ -161,6 +162,7 @@ HRESULT __stdcall SquirrelLangBarItemButton::GetText(BSTR *pbstrText)
 HRESULT __stdcall SquirrelLangBarItemButton::InitMenu(ITfMenu *pMenu)
 {
 	lout << "InitMenu" << endl;
+	lout << "E_FAIL" << endl;
 	return E_FAIL;
 }
 
@@ -177,5 +179,6 @@ HRESULT __stdcall SquirrelLangBarItemButton::OnClick(TfLBIClick click, POINT pt,
 HRESULT __stdcall SquirrelLangBarItemButton::OnMenuSelect(UINT wID)
 {
 	lout << "OnMenuSelect" << endl;
+	lout << "E_FAIL" << endl;
 	return E_FAIL;
 }

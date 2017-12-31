@@ -28,7 +28,7 @@ STDAPI DllCanUnloadNow()
 	lout << "DLLCanUnloadNow: objectCounter=" << objectCounter << endl;
 	if (objectCounter==0)
 		return S_OK;
-	return E_FAIL;
+	return S_FALSE;
 }
 
 HRESULT DllRegisterServer()

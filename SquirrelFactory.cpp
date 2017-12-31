@@ -54,5 +54,7 @@ HRESULT __stdcall SquirrelFactory::CreateInstance(IUnknown *p, const IID &iid, v
 
 HRESULT __stdcall SquirrelFactory::LockServer(BOOL b)
 {
+	lout << "LockServer" << endl;
+	lout << "E_FAIL" << endl;
 	return E_FAIL;
 }

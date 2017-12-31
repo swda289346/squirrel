@@ -474,12 +474,14 @@ STDMETHODIMP Squirrel::OnKeyUp(ITfContext *pic, WPARAM wParam, LPARAM lParam, BO
 STDMETHODIMP Squirrel::OnPreservedKey(ITfContext *pic, REFGUID rguid, BOOL *pfEaten)
 {
 	lout << "OnPreservedKey" << endl;
+	lout << "E_FAIL" << endl;
 	return E_FAIL;
 }
 
 STDMETHODIMP Squirrel::OnSetFocus(BOOL fForeground)
 {
 	lout << "OnSetFocus" << endl;
+	lout << "E_FAIL" << endl;
 	return E_FAIL;
 }
 
@@ -781,16 +783,19 @@ HRESULT __stdcall Squirrel::OnSetThreadFocus()
 
 HRESULT __stdcall Squirrel::OnInitDocumentMgr(ITfDocumentMgr *pdim)
 {
+	lout << "OnInitDocumentMgr" << " E_NOTIMPL" << endl;
 	return E_NOTIMPL;
 }
 
 HRESULT __stdcall Squirrel::OnPopContext(ITfContext *pic)
 {
+	lout << "OnPopContext" << " E_NOTIMPL" << endl;
 	return E_NOTIMPL;
 }
 
 HRESULT __stdcall Squirrel::OnPushContext(ITfContext *pic)
 {
+	lout << "OnPushContext" << " E_NOTIMPL" << endl;
 	return E_NOTIMPL;
 }
 
@@ -833,5 +838,6 @@ HRESULT __stdcall Squirrel::OnSetFocus(ITfDocumentMgr *pdimFocus, ITfDocumentMgr
 
 HRESULT __stdcall Squirrel::OnUninitDocumentMgr(ITfDocumentMgr *pdim)
 {
+	lout << "OnUninitDocumentMgr" << " E_NOTIMPL" << endl;
 	return E_NOTIMPL;
 }
